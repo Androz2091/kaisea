@@ -1,3 +1,6 @@
+import { config } from 'dotenv';
+config();
+
 import { Client, Intents, MessageEmbed } from 'discord.js';
 import { SlugSubscription, Subscription } from './database';
 import OpenSeaClient from './opensea';
