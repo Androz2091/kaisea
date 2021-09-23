@@ -63,7 +63,7 @@ discordClient.on('interactionCreate', async (interaction) => {
 
     const subscriptions = await Subscription.findAll({
         where: {
-            guildId: interaction.guildId,
+            discordGuildId: interaction.guildId,
             isActive: true
         }
     });
@@ -87,7 +87,7 @@ discordClient.on('interactionCreate', async (interaction) => {
 
             const slugSubscriptions = await SlugSubscription.findAll({
                 where: {
-                    guildId: interaction.guildId,
+                    discordGuildId: interaction.guildId,
                     isActive: true
                 }
             });
@@ -148,7 +148,7 @@ discordClient.on('interactionCreate', async (interaction) => {
 
             const slugSubscriptions = await SlugSubscription.findAll({
                 where: {
-                    guildId: interaction.guildId,
+                    discordGuildId: interaction.guildId,
                     isActive: true
                 }
             });
