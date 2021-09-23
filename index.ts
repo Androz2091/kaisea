@@ -66,7 +66,7 @@ discordClient.on('interactionCreate', async (interaction) => {
     });
 
     if (!subscriptions.length) {
-        interaction.reply('You must buy an active subscription at https://nft-watcher.io to be able to use the bot! :rocket:');
+        interaction.reply('You must buy an active subscription at https://nfts-watcher.io to be able to use the bot! :rocket:');
         return;
     }
 
@@ -187,7 +187,7 @@ discordClient.on('interactionCreate', async (interaction) => {
 
             const embeds = [
                 new MessageEmbed()
-                    .setAuthor('NFT Watcher')
+                    .setAuthor('NFTs Watcher')
                     .setDescription(slugSubscriptions.length ? '' : 'You have no items in your watch list! Add new by using `/watch`!')
             ];
             slugSubscriptions.forEach((slugSubscription) => {
