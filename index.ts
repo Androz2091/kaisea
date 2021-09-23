@@ -61,18 +61,6 @@ discordClient.on('interactionCreate', async (interaction) => {
     if (!interaction.guild) return;
     if (!interaction.isCommand()) return;
 
-    const subscriptions = await Subscription.findAll({
-        where: {
-            discordGuildId: interaction.guildId,
-            isActive: true
-        }
-    });
-
-    if (!subscriptions.length) {
-        interaction.reply('You must buy an active subscription at https://nfts-watcher.io to be able to use the bot! :rocket:');
-        return;
-    }
-
     const member = interaction.guild.members.cache.get(interaction.user.id)
     ?? await interaction.guild.members.fetch(interaction.user.id);
 
@@ -92,6 +80,18 @@ discordClient.on('interactionCreate', async (interaction) => {
                 }
             });
 
+            const subscriptions = await Subscription.findAll({
+                where: {
+                    claimerDiscordGuildId: interaction.guildId,
+                    isActive: true
+                }
+            });
+            const maxSubscriptionsUsed = !subscriptions.length && slugSubscriptions.length > 0;
+            if (maxSubscriptionsUsed) {
+                interaction.reply('You must buy an active subscription at https://nfts-watcher.io to be able to add more than one watch channel! :rocket:');
+                return;
+            }
+
             const slug = interaction.options.getString('slug')!;
 
             if (slugSubscriptions.some((slugSubscription) => slugSubscription.slug === slug)) {
@@ -101,15 +101,15 @@ discordClient.on('interactionCreate', async (interaction) => {
 
             interaction.deferReply();
 
-            const { slugExists, floorPrice, error } = await openSeaClient.getFloorPrice(slug);
+            const { slugExists, floorPrice, error } = await openSeaClient.getSlugStats(slug);
 
             if (error) {
-                interaction.reply(error);
+                interaction.followUp(error);
                 return;
             }
 
             if (!slugExists) {
-                interaction.reply('This slug does not exist!');
+                interaction.followUp('This slug does not exist or does not have a floor price!');
                 return;
             }
 
@@ -123,7 +123,7 @@ discordClient.on('interactionCreate', async (interaction) => {
                     }
                 ]
             }).catch(() => {
-                interaction.reply('Failed to create channel! Can you check my permissions?');
+                interaction.followUp('Failed to create channel! Can you check my permissions?');
                 return;
             });
 
@@ -137,11 +137,11 @@ discordClient.on('interactionCreate', async (interaction) => {
                 createdAt: new Date(),
                 isActive: true
             }).then(() => {
-                interaction.reply('You are now watching this slug! :rocket:');
+                interaction.followUp('You are now watching this slug! :rocket:');
             }).catch(() => {
-                interaction.reply('Something went wrong!');
+                interaction.followUp('Something went wrong!');
             });
-
+            break;
         }
 
         case 'unwatch': {
@@ -178,6 +178,7 @@ discordClient.on('interactionCreate', async (interaction) => {
             }).catch(() => {
                 interaction.reply('Something went wrong!');
             });
+            break;
         }
 
         case 'watch-list': {
@@ -199,13 +200,75 @@ discordClient.on('interactionCreate', async (interaction) => {
                 const slugSubscriptionText = `[${slugSubscription.slug}](https://opensea.io/collection/${slugSubscription.slug})\n`;
                 if ((description.length + slugSubscriptionText.length) > 2048) {
                     embeds.push(new MessageEmbed().setDescription(slugSubscriptionText));
+                } else {
+                    embed.setDescription(embed.description + slugSubscriptionText);
                 }
             });
 
             embeds.forEach((embed) => embed.setColor('#0E4749'));
-            embeds.at(-1)?.setFooter('Use `/unwatch` to remove an item from your watch list.');
+            embeds.at(-1)?.setFooter('Use /unwatch to remove an item from your watch list.');
 
             interaction.reply({ embeds });
+            break;
+        }
+
+        case 'license': {
+            const license = interaction.options.getString('license')!;
+            const subscription = await Subscription.findOne({
+                where: {
+                    subId: license,
+                    isActive: true
+                }
+            });
+            if (!subscription) {
+                interaction.reply('This license does not exist!');
+                return;
+            }
+            subscription.claimerDiscordGuildId = interaction.guildId;
+            await subscription.save();
+            interaction.reply('You have successfully claimed this license!');
+            break;
+        }
+
+        case 'stats': {
+            const subscriptions = await Subscription.findAll({
+                where: {
+                    claimerDiscordGuildId: interaction.guildId,
+                    isActive: true
+                }
+            });
+            if (!subscriptions.length) {
+                interaction.reply('You must buy an active subscription at https://nfts-watcher.io to be able to use this command! :rocket:');
+                return;
+            }
+
+            const slug = interaction.options.getString('slug')!;
+
+            interaction.deferReply();
+
+            const { error, slugExists, floorPrice, volumeTraded, ownerCount, itemCount } = await openSeaClient.getSlugStats(slug);
+
+            if (error) {
+                interaction.followUp(error);
+                return;
+            }
+
+            if (!slugExists) {
+                interaction.followUp('This slug does not exist or does not have a floor price!');
+                return;
+            }
+
+            const embed = new MessageEmbed()
+                .setAuthor('NFTs Watcher')
+                .setDescription(`📈 Statistics for collection [${slug}](https://opensea.io/collection/${slug})`)
+                .addField('Floor Price', `${floorPrice} ETH`, true)
+                .addField('Volume Traded', `${volumeTraded} ETH`, true)
+                .addField('Owner Count', `${ownerCount}`, true)
+                .addField('Item Count', `${itemCount}`, true)
+                .setColor('#0E4749');
+            
+            interaction.followUp({ embeds: [embed] });
+            break;
         }
 
     }

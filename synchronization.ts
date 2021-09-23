@@ -21,7 +21,7 @@ export const synchronize = async (discordClient: Client, openseaClient: OpenSeaC
         if (!channel) return;
 
         const similarSlug = similarSlugs.get(slug);
-        const { error, slugExists, floorPrice } = similarSlug || await openseaClient.getFloorPrice(slug);
+        const { error, slugExists, floorPrice } = similarSlug || await openseaClient.getSlugStats(slug);
 
         if (error || !slugExists) return;
 

@@ -135,4 +135,4 @@ SlugSubscription.init({
     tableName: 'slug_subscriptions'
 });
 
-sequelize.sync({ force: process.argv.includes('--force-sync') });
+if (process.argv.includes('--sync')) sequelize.sync({ force: process.argv.includes('--force') });

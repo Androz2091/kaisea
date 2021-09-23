@@ -62,7 +62,7 @@ server.post('/subscription-created', async (request, reply) => {
         expiresAt: new Date(nextBillingDate.getTime() + (product.days * 24 * 60 * 60 * 1000)),
         isActive: true,
         productId,
-        claimerDiscordId: null,
+        claimerDiscordGuildId: null,
         claimedAt: null
     }).catch((err) => {
         console.error(err);
@@ -107,7 +107,7 @@ server.post('/order-placed', async (request, reply) => {
 
     if (status !== 'SUCCESS') {
         return void reply.send(200);
-    }; // TODO: check if this works
+    };
 
     const subscription = await Subscription.findOne({
         where: {

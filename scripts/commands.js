@@ -30,6 +30,28 @@ const commands = [{
     name: 'watch-list',
     description: 'List all watched NFT slugs from OpenSea!',
     options: []
+}, {
+    name: 'stats',
+    description: 'Get stats about a NFT slug from OpenSea! (premium-only)',
+    options: [
+        {
+            name: 'slug',
+            description: 'Slug of the collection',
+            type: ApplicationCommandOptionType.String,
+            required: true
+        }
+    ]
+}, {
+    name: 'license',
+    description: 'Link your NFTs Watcher Premium license',
+    options: [
+        {
+            name: 'license',
+            description: 'Your license key',
+            type: ApplicationCommandOptionType.String,
+            required: true
+        }
+    ]
 }];
 
 const rest = new REST({ version: '9' }).setToken(process.env.DISCORD_TOKEN);

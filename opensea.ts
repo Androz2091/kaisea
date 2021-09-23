@@ -4,6 +4,8 @@ import puppeteer from 'puppeteer-extra';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 puppeteer.use(StealthPlugin());
 
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms)); 
+
 export default class OpenSeaClient {
 
     public _waitForBrowser: Promise<null>;
@@ -15,16 +17,21 @@ export default class OpenSeaClient {
         this._waitForBrowser = new Promise((resolve) => {
             this.resolveLaunchPromise = resolve;
         });
+        console.log('Launching Chromium...');
         puppeteer.launch({
             headless: false
         }).then((browser) => {
+            console.log('Launched Chromium');
             this.browser = browser;
             this.resolveLaunchPromise(null);
         });
     }
 
-    async getFloorPrice (slug: string): Promise<{
-        floorPrice?: number,
+    async getSlugStats (slug: string): Promise<{
+        floorPrice?: string,
+        itemCount?: string,
+        ownerCount?: string,
+        volumeTraded?: string,
         slugExists?: boolean,
         error?: string
     }> {
@@ -33,19 +40,49 @@ export default class OpenSeaClient {
 
         const page = await this.browser.newPage();
         const waitForFloorPrice = page.waitForSelector('.fqMVjm', {
-            timeout: 5000
+            timeout: 10000
         });
         await page.goto(`https://opensea.io/collection/${slug}`);
         const waitForFloorPriceSuccess = await waitForFloorPrice.catch(() => {});
+        await sleep(500);
         if (!waitForFloorPriceSuccess) {
+            await page.close();
             return { slugExists: false }
         }
+
+        const parseContent = (content: string): boolean|string => {
+            const updatedContent = content.includes('<') ? content.slice(2, content.length) : content;
+            if (isNaN(parseFloat(updatedContent))) return false;
+            const parsedContent = updatedContent.includes('K') ? parseFloat(updatedContent) * 1000 : parseFloat(updatedContent);
+            return parsedContent.toLocaleString();
+        }
+
+        const itemCountElement = (await page.$$('.fqMVjm'))[0];
+        const itemCountContent = await itemCountElement.evaluate((el) => el.textContent) as string;
+        const ownerCount = (await page.$$('.fqMVjm'))[1];
+        const ownerContent = await ownerCount.evaluate((el) => el.textContent) as string;
         const floorPriceElement = (await page.$$('.fqMVjm'))[2];
         const floorPriceContent = await floorPriceElement.evaluate((el) => el.textContent) as string;
+        const volumeTradedElement = (await page.$$('.fqMVjm'))[3];
+        const volumeTradedContent = await volumeTradedElement.evaluate((el) => el.textContent) as string;
 
+        if (
+            !parseContent(itemCountContent)
+            || !parseContent(ownerContent)
+            || !parseContent(floorPriceContent)
+            || !parseContent(volumeTradedContent)
+        ) {
+            await page.close();
+            return { error: 'Something went wrong with the floor price of this slug. Please retry with a slug that has a valid floor price' };
+        }
+
+        await page.close();
         return {
             slugExists: true,
-            floorPrice: parseFloat(floorPriceContent)
+            floorPrice: parseContent(floorPriceContent) as string,
+            itemCount: parseContent(itemCountContent) as string,
+            ownerCount: parseContent(ownerContent) as string,
+            volumeTraded: parseContent(volumeTradedContent) as string
         }
     }
 
