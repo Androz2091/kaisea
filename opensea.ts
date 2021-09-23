@@ -19,7 +19,7 @@ export default class OpenSeaClient {
         });
         console.log('Launching Chromium...');
         puppeteer.launch({
-            headless: false
+            headless: true
         }).then((browser) => {
             console.log('Launched Chromium');
             this.browser = browser;
