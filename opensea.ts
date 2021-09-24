@@ -8,23 +8,18 @@ const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 export default class OpenSeaClient {
 
-    public _waitForBrowser: Promise<null>;
-    public resolveLaunchPromise: (value: PromiseLike<null> | null) => void = () => {};
+    public _waitForBrowser: Promise<void | null>;
     public browser: Browser|null;
 
     constructor () {
         this.browser = null;
-        this._waitForBrowser = new Promise((resolve) => {
-            this.resolveLaunchPromise = resolve;
+        this._waitForBrowser = puppeteer.launch({
+            headless: true,
+        }).then((browser) => {
+            console.log('Launched Chromium!');
+            this.browser = browser;
         });
         console.log('Launching Chromium...');
-        puppeteer.launch({
-            headless: true
-        }).then((browser) => {
-            console.log('Launched Chromium');
-            this.browser = browser;
-            this.resolveLaunchPromise(null);
-        });
     }
 
     async getSlugStats (slug: string): Promise<{
