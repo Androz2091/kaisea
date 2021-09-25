@@ -1,4 +1,4 @@
-import { SlugSubscription } from "./database";
+import { FloorPriceHistory, SlugSubscription } from "./database";
 import type OpenSeaClient from "./opensea";
 import type { Client, VoiceChannel } from "discord.js";
 
@@ -21,17 +21,28 @@ export const synchronize = async (discordClient: Client, openseaClient: OpenSeaC
         if (!channel) return;
 
         const similarSlug = similarSlugs.get(slug);
-        const { error, slugExists, floorPrice } = similarSlug || await openseaClient.getSlugStats(slug);
+        const { error, slugExists, floorPrice, floorPriceNum } = similarSlug || await openseaClient.getSlugStats(slug);
 
         if (error || !slugExists) return;
 
         if (!similarSlug) {
-            similarSlugs.set(slug, { error, slugExists, floorPrice });
+            similarSlugs.set(slug, { error, slugExists, floorPrice, floorPriceNum });
         }
 
         await channel.setName(`${floorPrice} ETH | ${openseaClient.formatSlugName(slug)}`);
 
     });
+
+    for (let entry of similarSlugs.entries()) {
+        const { error, slugExists, floorPriceNum } = entry[1];
+        if (error || !slugExists) return;
+        const date = new Date();
+        FloorPriceHistory.create({
+            slug: entry[0],
+            date,
+            value: floorPriceNum
+        });
+    }
 
     return await Promise.all(promises);
 

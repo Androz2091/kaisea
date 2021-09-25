@@ -30,6 +30,12 @@ export class AppstlePayment extends Model {
     billingDate!: Date;
 };
 
+export class FloorPriceHistory extends Model {
+    slug!: string;
+    createdAt!: Date;
+    value!: number;
+}
+
 export class SlugSubscription extends Model {
     id!: number;
     slug!: string;
@@ -133,6 +139,24 @@ SlugSubscription.init({
 }, {
     sequelize,
     tableName: 'slug_subscriptions'
+});
+
+FloorPriceHistory.init({
+    slug: {
+        type: DataTypes.STRING,
+        allowNull: false,
+    },
+    createdAt: {
+        type: DataTypes.DATE,
+        allowNull: false,
+    },
+    value: {
+        type: DataTypes.FLOAT,
+        allowNull: false,
+    }
+}, {
+    sequelize,
+    tableName: 'floor_price_history'
 });
 
 if (process.argv.includes('--sync')) sequelize.sync({ force: process.argv.includes('--force') });

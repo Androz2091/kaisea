@@ -24,6 +24,7 @@ export default class OpenSeaClient {
 
     async getSlugStats (slug: string): Promise<{
         floorPrice?: string;
+        floorPriceNum?: number;
         itemCount?: string;
         ownerCount?: string;
         volumeTraded?: string;
@@ -47,11 +48,14 @@ export default class OpenSeaClient {
             return { slugExists: false }
         }
 
-        const parseContent = (content: string): boolean|string => {
+        const parseContent = (content: string): null|{ formatted: string; num: number; } => {
             const updatedContent = content.includes('<') ? content.slice(2, content.length) : content;
-            if (isNaN(parseFloat(updatedContent))) return false;
+            if (isNaN(parseFloat(updatedContent))) return null;
             const parsedContent = updatedContent.includes('K') ? parseFloat(updatedContent) * 1000 : parseFloat(updatedContent);
-            return parsedContent.toLocaleString();
+            return {
+                formatted: parsedContent.toLocaleString(),
+                num: parseFloat(updatedContent)
+            };
         }
 
         const itemCountElement = (await page.$$('.fqMVjm'))[0];
@@ -80,10 +84,11 @@ export default class OpenSeaClient {
         await page.close();
         return {
             slugExists: true,
-            floorPrice: parseContent(floorPriceContent) as string,
-            itemCount: parseContent(itemCountContent) as string,
-            ownerCount: parseContent(ownerContent) as string,
-            volumeTraded: parseContent(volumeTradedContent) as string,
+            floorPrice: parseContent(floorPriceContent)?.formatted as string,
+            floorPriceNum: parseContent(floorPriceContent)?.num as number,
+            itemCount: parseContent(itemCountContent)?.formatted as string,
+            ownerCount: parseContent(ownerContent)?.formatted as string,
+            volumeTraded: parseContent(volumeTradedContent)?.formatted as string,
             iconImageURL,
             bannerImageURL
         }
