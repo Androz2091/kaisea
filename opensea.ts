@@ -23,12 +23,14 @@ export default class OpenSeaClient {
     }
 
     async getSlugStats (slug: string): Promise<{
-        floorPrice?: string,
-        itemCount?: string,
-        ownerCount?: string,
-        volumeTraded?: string,
-        slugExists?: boolean,
-        error?: string
+        floorPrice?: string;
+        itemCount?: string;
+        ownerCount?: string;
+        volumeTraded?: string;
+        slugExists?: boolean;
+        iconImageURL?: string;
+        bannerImageURL?: string;
+        error?: string;
     }> {
         await this._waitForBrowser;
         if (!this.browser) return { error: 'Something when wrong with Chromium.' };
@@ -60,6 +62,10 @@ export default class OpenSeaClient {
         const floorPriceContent = await floorPriceElement.evaluate((el) => el.textContent) as string;
         const volumeTradedElement = (await page.$$('.fqMVjm'))[3];
         const volumeTradedContent = await volumeTradedElement.evaluate((el) => el.textContent) as string;
+        const bannerImageElement = (await page.$$('.Image--image'))[0];
+        const bannerImageURL = await bannerImageElement.evaluate((el) => el.getAttribute('src')) as string;
+        const iconImageElement = (await page.$$('.Image--image'))[1];
+        const iconImageURL = await iconImageElement.evaluate((el) => el.getAttribute('src')) as string;
 
         if (
             !parseContent(itemCountContent)
@@ -77,7 +83,9 @@ export default class OpenSeaClient {
             floorPrice: parseContent(floorPriceContent) as string,
             itemCount: parseContent(itemCountContent) as string,
             ownerCount: parseContent(ownerContent) as string,
-            volumeTraded: parseContent(volumeTradedContent) as string
+            volumeTraded: parseContent(volumeTradedContent) as string,
+            iconImageURL,
+            bannerImageURL
         }
     }
 

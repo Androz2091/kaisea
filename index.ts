@@ -88,7 +88,7 @@ discordClient.on('interactionCreate', async (interaction) => {
             });
             const maxSubscriptionsUsed = !subscriptions.length && slugSubscriptions.length > 0;
             if (maxSubscriptionsUsed) {
-                interaction.reply('You must buy an active subscription at https://nfts-watcher.io to be able to add more than one watch channel! :rocket:');
+                interaction.reply('You must buy an active subscription at https://kaisea.io to be able to add more than one watch channel! :rocket:');
                 return;
             }
 
@@ -191,7 +191,7 @@ discordClient.on('interactionCreate', async (interaction) => {
 
             const embeds = [
                 new MessageEmbed()
-                    .setAuthor('NFTs Watcher')
+                    .setAuthor('Kaisea Watch List')
                     .setDescription(slugSubscriptions.length ? '' : 'You have no items in your watch list! Add new by using `/watch`!')
             ];
             slugSubscriptions.forEach((slugSubscription) => {
@@ -246,7 +246,7 @@ discordClient.on('interactionCreate', async (interaction) => {
 
             interaction.deferReply();
 
-            const { error, slugExists, floorPrice, volumeTraded, ownerCount, itemCount } = await openSeaClient.getSlugStats(slug);
+            const { error, slugExists, floorPrice, volumeTraded, ownerCount, itemCount, iconImageURL, bannerImageURL } = await openSeaClient.getSlugStats(slug);
 
             if (error) {
                 interaction.followUp(error);
@@ -259,7 +259,8 @@ discordClient.on('interactionCreate', async (interaction) => {
             }
 
             const embed = new MessageEmbed()
-                .setAuthor('NFTs Watcher')
+                .setAuthor('Kaisea', iconImageURL)
+                .setImage(bannerImageURL!)
                 .setDescription(`📈 Statistics for collection [${slug}](https://opensea.io/collection/${slug})`)
                 .addField('Floor Price', `${floorPrice} ETH`, true)
                 .addField('Volume Traded', `${volumeTraded} ETH`, true)
