@@ -45,6 +45,7 @@ export class SlugSubscription extends Model {
     createdAt!: Date;
     isActive!: boolean;
     cancelledAt!: Date;
+    updatedAt!: Date;
 };
 
 Subscription.init({
@@ -133,6 +134,10 @@ SlugSubscription.init({
         allowNull: false,
     },
     cancelledAt: {
+        type: DataTypes.DATE,
+        allowNull: true,
+    },
+    updatedAt: {
         type: DataTypes.DATE,
         allowNull: true,
     }
