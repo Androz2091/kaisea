@@ -68,7 +68,7 @@ const rest = new REST({ version: '9' }).setToken(process.env.DISCORD_TOKEN);
         */
 
         await rest.put(
-            Routes.applicationGuildCommands(process.env.DISCORD_CLIENT_ID, '890617349068165180'),
+            Routes.applicationCommands(process.env.DISCORD_CLIENT_ID),
             { body: commands }
         ).then(console.log);
 

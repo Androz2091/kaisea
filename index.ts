@@ -114,7 +114,7 @@ discordClient.on('interactionCreate', async (interaction) => {
             }
 
             const slugName = openSeaClient.formatSlugName(slug);
-            const channel = await interaction.guild.channels.create(`${floorPrice} ETH | ${slugName}`, {
+            const channel = await interaction.guild.channels.create(`${floorPrice} Ξ | ${slugName}`, {
                 type: 'GUILD_VOICE',
                 permissionOverwrites: [
                     {
@@ -262,8 +262,8 @@ discordClient.on('interactionCreate', async (interaction) => {
                 .setAuthor('Kaisea', iconImageURL)
                 .setImage(bannerImageURL!)
                 .setDescription(`📈 Statistics for collection [${slug}](https://opensea.io/collection/${slug})`)
-                .addField('Floor Price', `${floorPrice} ETH`, true)
-                .addField('Volume Traded', `${volumeTraded} ETH`, true)
+                .addField('Floor Price', `${floorPrice} Ξ`, true)
+                .addField('Volume Traded', `${volumeTraded} Ξ`, true)
                 .addField('Owner Count', `${ownerCount}`, true)
                 .addField('Item Count', `${itemCount}`, true)
                 .setColor('#0E4749');

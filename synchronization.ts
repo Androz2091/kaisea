@@ -29,7 +29,7 @@ export const synchronize = async (discordClient: Client, openseaClient: OpenSeaC
             similarSlugs.set(slug, { error, slugExists, floorPrice, floorPriceNum });
         }
 
-        await channel.setName(`${floorPrice} ETH | ${openseaClient.formatSlugName(slug)}`);
+        await channel.setName(`${floorPrice} Ξ | ${openseaClient.formatSlugName(slug)}`);
 
     });
 
