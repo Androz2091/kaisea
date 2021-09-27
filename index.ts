@@ -189,6 +189,8 @@ discordClient.on('interactionCreate', async (interaction) => {
                 }
             });
 
+            console.log(slugSubscriptions[0]);
+
             const embeds = [
                 new MessageEmbed()
                     .setAuthor('Kaisea Watch List')

@@ -10,6 +10,8 @@ export const synchronize = async (discordClient: Client, openseaClient: OpenSeaC
         }
     });
 
+    console.log(`Found ${slugSubscriptions.length} slug subscriptions`);
+
     const similarSlugs = new Map();
 
     const promises = slugSubscriptions.map(async (slugSubscription) => {
@@ -17,11 +19,15 @@ export const synchronize = async (discordClient: Client, openseaClient: OpenSeaC
         const slug = slugSubscription.slug;
         const channelId = slugSubscription.discordChannelId;
         const channel = discordClient.channels.cache.get(channelId) as VoiceChannel;
-
+        
         if (!channel) return;
+
+        console.log(`Channel found for subscription #${slugSubscription.id}`);
 
         const similarSlug = similarSlugs.get(slug);
         const { error, slugExists, floorPrice, floorPriceNum } = similarSlug || await openseaClient.getSlugStats(slug);
+
+        console.log(`Slug exists: ${slugExists}; Floor Price num: ${floorPrice}`);
 
         if (error || !slugExists) return;
 
