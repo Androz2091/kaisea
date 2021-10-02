@@ -1,167 +1,110 @@
-import { Model, Sequelize, DataTypes } from 'sequelize';
+import { Entity, Column, PrimaryColumn, createConnection, Connection, PrimaryGeneratedColumn } from "typeorm";
 
-export const sequelize = new Sequelize({
-    dialect: 'postgres',
+export let connection: Connection;
+
+export const initialize = () => createConnection({
+    type: 'postgres',
+    host: 'localhost',
     database: process.env.DB_NAME,
     username: process.env.DB_USERNAME,
-    password: process.env.DB_PASSWORD
-});
+    password: process.env.DB_PASSWORD,
+    entities: [Subscription, AppstlePayment, FloorPriceHistory, SlugSubscription],
+    synchronize: true
+}).then((createdConnection) => connection = createdConnection);
 
-export class Subscription extends Model {
+@Entity()
+export class Subscription {
+
+    @PrimaryColumn()
     subId!: string;
+
+    @Column()
     subType!: string;
+
+    @Column()
     createdAt!: Date;
+
+    @Column()
     expiresAt!: Date;
+
+    @Column()
     isActive!: boolean;
-    claimerDiscordGuildId!: string|null;
-    claimedAt!: Date|null;
 
+    @Column({ length: 32, nullable: true })
+    claimerDiscordGuildId!: string;
+
+    @Column({ nullable: true })
+    claimedAt!: Date;
+
+    @Column({ length: 32, nullable: true })
     // manual sub stuff
-    modDiscordId!: string|null;
+    modDiscordId!: string;
 
+    @Column({ nullable: true })
     // appstle stuff
-    productId!: string|null;
-};
+    productId!: string;
 
-export class AppstlePayment extends Model {
+}
+
+@Entity()
+export class AppstlePayment {
+
+    @PrimaryColumn()
     orderId!: string;
+
+    @Column()
     subId!: string;
+
+    @Column()
     status!: string;
+
+    @Column()
     billingDate!: Date;
 };
 
-export class FloorPriceHistory extends Model {
+@Entity()
+export class FloorPriceHistory {
+
+    @PrimaryGeneratedColumn()
+    id!: number;
+
+    @Column()
     slug!: string;
+
+    @Column()
     createdAt!: Date;
+
+    @Column()
     value!: number;
 }
 
-export class SlugSubscription extends Model {
+@Entity()
+export class SlugSubscription {
+
+    @PrimaryGeneratedColumn()
     id!: number;
+
+    @Column()
     slug!: string;
+
+    @Column({ length: 32 })
     discordUserId!: string;
+
+    @Column({ length: 32 })
     discordGuildId!: string;
+
+    @Column({ length: 32 })
     discordChannelId!: string;
+
+    @Column()
     createdAt!: Date;
+
+    @Column()
     isActive!: boolean;
+
+    @Column()
     cancelledAt!: Date;
+
+    @Column()
     updatedAt!: Date;
 };
-
-Subscription.init({
-    subId: {
-        type: DataTypes.STRING,
-        primaryKey: true
-    },
-    subType: {
-        type: DataTypes.STRING,
-        allowNull: false
-    },
-    createdAt: {
-        type: DataTypes.DATE,
-        allowNull: false
-    },
-    expiresAt: {
-        type: DataTypes.DATE,
-        allowNull: false
-    },
-    isActive: {
-        type: DataTypes.BOOLEAN,
-        allowNull: false
-    },
-    claimerDiscordGuildId: {
-        type: DataTypes.STRING,
-        allowNull: true
-    },
-    claimedAt: {
-        type: DataTypes.DATE,
-        allowNull: true
-    },
-    modDiscordUserId: {
-        type: DataTypes.STRING,
-        allowNull: true
-    },
-    productId: {
-        type: DataTypes.STRING,
-        allowNull: true
-    }
-}, {
-    sequelize,
-    tableName: 'subscriptions'
-});
-
-AppstlePayment.init({
-    orderId: {
-        type: DataTypes.STRING,
-        primaryKey: true
-    },
-    subId: {
-        type: DataTypes.STRING,
-        allowNull: false
-    },
-    status: {
-        type: DataTypes.STRING,
-        allowNull: false
-    },
-    billingDate: {
-        type: DataTypes.DATE,
-        allowNull: false
-    }
-}, {
-    sequelize,
-    tableName: 'appstle_payments'
-});
-
-SlugSubscription.init({
-    slug: {
-        type: DataTypes.STRING,
-        allowNull: false,
-    },
-    discordGuildId: {
-        type: DataTypes.STRING,
-        allowNull: false,
-    },
-    discordChannelId: {
-        type: DataTypes.STRING,
-        allowNull: false,
-    },
-    createdAt: {
-        type: DataTypes.DATE,
-        allowNull: false,
-    },
-    isActive: {
-        type: DataTypes.BOOLEAN,
-        allowNull: false,
-    },
-    cancelledAt: {
-        type: DataTypes.DATE,
-        allowNull: true,
-    },
-    updatedAt: {
-        type: DataTypes.DATE,
-        allowNull: true,
-    }
-}, {
-    sequelize,
-    tableName: 'slug_subscriptions'
-});
-
-FloorPriceHistory.init({
-    slug: {
-        type: DataTypes.STRING,
-        allowNull: false,
-    },
-    createdAt: {
-        type: DataTypes.DATE,
-        allowNull: false,
-    },
-    value: {
-        type: DataTypes.FLOAT,
-        allowNull: false,
-    }
-}, {
-    sequelize,
-    tableName: 'floor_price_history'
-});
-
-if (process.argv.includes('--sync')) sequelize.sync({ force: process.argv.includes('--force') });

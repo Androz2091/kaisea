@@ -1,10 +1,14 @@
+import 'reflect-metadata';
 import { config } from 'dotenv';
 config();
 
 import { Client, Intents, MessageEmbed } from 'discord.js';
-import { SlugSubscription, Subscription } from './database';
+import { connection, initialize, SlugSubscription, Subscription } from './database';
 import OpenSeaClient from './opensea';
 import { synchronize } from './synchronization';
+import { LessThanOrEqual } from 'typeorm';
+
+initialize();
 
 const openSeaClient = new OpenSeaClient();
 const discordClient = new Client({
@@ -22,35 +26,26 @@ setInterval(() => {
 setInterval(async () => {
 
     // expires old subscriptions
-    await Subscription.update({
-        isActive: false
+    await connection.getRepository(Subscription).update({
+        isActive: true,
+        expiresAt: LessThanOrEqual(Date.now() + 1000 * 60 * 60 * 96)
     }, {
-        where: {
-            isActive: true,
-            expiresAt: {
-                $lte: Date.now() + 1000 * 60 * 60 * 96 // 96 hours, to be safe
-            }
-        }
+        isActive: false
     });
 
-    const guildSlugSubscriptions = await SlugSubscription.findAll({
-        where: {
-            isActive: true
-        }
+    const guildSlugSubscriptions = await connection.getRepository(SlugSubscription).find({
+        isActive: true
     });
 
-    const guildSubscriptions = await Subscription.findAll({
-        where: {
-            isActive: true
-        }
+    const guildSubscriptions = await connection.getRepository(Subscription).find({
+        isActive: true
     });
 
     for (const guildSlugSubscription of guildSlugSubscriptions) {
         const subscriptions = guildSubscriptions.filter((subscription) => subscription.claimerDiscordGuildId === guildSlugSubscription.discordGuildId);
         if (subscriptions.length === 0) {
-            await guildSlugSubscription.update({
-                isActive: false
-            });
+            guildSlugSubscription.isActive = false;
+            await connection.manager.save(guildSlugSubscription);
         }
     }
 
@@ -73,18 +68,14 @@ discordClient.on('interactionCreate', async (interaction) => {
 
         case 'watch': {
 
-            const slugSubscriptions = await SlugSubscription.findAll({
-                where: {
-                    discordGuildId: interaction.guildId,
-                    isActive: true
-                }
+            const slugSubscriptions = await connection.getRepository(SlugSubscription).find({
+                discordGuildId: interaction.guildId!,
+                isActive: true
             });
 
-            const subscriptions = await Subscription.findAll({
-                where: {
-                    claimerDiscordGuildId: interaction.guildId,
-                    isActive: true
-                }
+            const subscriptions = await connection.getRepository(Subscription).find({
+                claimerDiscordGuildId: interaction.guildId!,
+                isActive: true
             });
             const maxSubscriptionsUsed = !subscriptions.length && slugSubscriptions.length > 0;
             if (maxSubscriptionsUsed) {
@@ -129,10 +120,10 @@ discordClient.on('interactionCreate', async (interaction) => {
 
             if (!channel) return;
 
-            await SlugSubscription.create({
+            await connection.getRepository(SlugSubscription).insert({
                 slug,
                 discordUserId: interaction.user.id,
-                discordGuildId: interaction.guildId,
+                discordGuildId: interaction.guildId!,
                 discordChannelId: channel.id,
                 createdAt: new Date(),
                 isActive: true
@@ -146,11 +137,9 @@ discordClient.on('interactionCreate', async (interaction) => {
 
         case 'unwatch': {
 
-            const slugSubscriptions = await SlugSubscription.findAll({
-                where: {
-                    discordGuildId: interaction.guildId,
-                    isActive: true
-                }
+            const slugSubscriptions = await connection.getRepository(SlugSubscription).find({
+                discordGuildId: interaction.guildId!,
+                isActive: true
             });
 
             const slug = interaction.options.getString('slug')!;
@@ -166,13 +155,11 @@ discordClient.on('interactionCreate', async (interaction) => {
                 await channel.delete();
             }
 
-            await SlugSubscription.update({
-                isActive: false
+            await connection.getRepository(SlugSubscription).update({
+                slug,
+                discordGuildId: interaction.guildId!
             }, {
-                where: {
-                    slug,
-                    discordGuildId: interaction.guildId
-                }
+                isActive: false
             }).then(() => {
                 interaction.reply('You are no longer watching this slug!');
             }).catch(() => {
@@ -182,14 +169,10 @@ discordClient.on('interactionCreate', async (interaction) => {
         }
 
         case 'watch-list': {
-            const slugSubscriptions = await SlugSubscription.findAll({
-                where: {
-                    discordGuildId: interaction.guildId,
-                    isActive: true
-                }
+            const slugSubscriptions = await connection.getRepository(SlugSubscription).find({
+                discordGuildId: interaction.guildId!,
+                isActive: true
             });
-
-            console.log(slugSubscriptions[0]);
 
             const embeds = [
                 new MessageEmbed()
@@ -216,28 +199,24 @@ discordClient.on('interactionCreate', async (interaction) => {
 
         case 'license': {
             const license = interaction.options.getString('license')!;
-            const subscription = await Subscription.findOne({
-                where: {
-                    subId: license,
-                    isActive: true
-                }
+            const subscription = await connection.getRepository(Subscription).findOne({
+                subId: license,
+                isActive: true
             });
             if (!subscription) {
                 interaction.reply('This license does not exist!');
                 return;
             }
-            subscription.claimerDiscordGuildId = interaction.guildId;
-            await subscription.save();
+            subscription.claimerDiscordGuildId = interaction.guildId!;
+            await connection.manager.save(subscription);
             interaction.reply('You have successfully claimed this license!');
             break;
         }
 
         case 'stats': {
-            const subscriptions = await Subscription.findAll({
-                where: {
-                    claimerDiscordGuildId: interaction.guildId,
-                    isActive: true
-                }
+            const subscriptions = await connection.getRepository(Subscription).find({
+                claimerDiscordGuildId: interaction.guildId!,
+                isActive: true
             });
             if (!subscriptions.length) {
                 interaction.reply('You must buy an active subscription at https://nfts-watcher.io to be able to use this command! :rocket:');

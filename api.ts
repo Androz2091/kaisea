@@ -1,5 +1,5 @@
 import fastify from 'fastify';
-import { AppstlePayment, Subscription } from './database';
+import { connection, AppstlePayment, Subscription } from './database';
 import client from './';
 import { MessageEmbed, TextChannel } from 'discord.js';
 
@@ -55,15 +55,13 @@ server.post('/subscription-created', async (request, reply) => {
 
     const product = products.find((product) => product.id === productId)!;
 
-    Subscription.create({
+    connection.getRepository(Subscription).insert({
         subId,
         subType: 'appstle',
         createdAt,
         expiresAt: new Date(nextBillingDate.getTime() + (product.days * 24 * 60 * 60 * 1000)),
         isActive: true,
-        productId,
-        claimerDiscordGuildId: null,
-        claimedAt: null
+        productId
     }).catch((err) => {
         console.error(err);
     }).finally(() => {
@@ -109,22 +107,20 @@ server.post('/order-placed', async (request, reply) => {
         return void reply.send(200);
     };
 
-    const subscription = await Subscription.findOne({
-        where: {
-            subId
-        }
+    const subscription = await connection.getRepository(Subscription).findOne({
+        subId
     });
 
     if (subscription) {
         subscription.expiresAt = new Date(subscription.expiresAt.getTime() + (32 * 24 * 60 * 60 * 1000));
-        await subscription.save();
+        await connection.manager.save(subscription);
     }
 
-    AppstlePayment.create({
+    connection.getRepository(AppstlePayment).insert({
         orderId,
         subId,
         status,
-        billindDate: new Date()
+        billingDate: new Date()
     }).catch((e) => {
         console.error(e);
     }).finally(() => {
@@ -163,15 +159,13 @@ server.post('/subscription-updated', async (request, reply) => {
     const subId = data.subID.match(/gid:\/\/shopify\/SubscriptionContract\/([0-9]+)/)![1];
     const status = data.status;
 
-    const subscription = await Subscription.findOne({
-        where: {
-            subId
-        }
+    const subscription = await connection.getRepository(Subscription).findOne({
+        subId
     });
 
     if (subscription?.isActive && status === 'CANCELLED') {
         subscription.isActive = false;
-        await subscription.save();
+        await connection.manager.save(subscription);
 
         const product = products.find((product) => product.id === subscription.productId)!;
 

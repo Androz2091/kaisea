@@ -1,13 +1,11 @@
-import { FloorPriceHistory, SlugSubscription } from "./database";
+import { connection, FloorPriceHistory, SlugSubscription } from "./database";
 import type OpenSeaClient from "./opensea";
 import type { Client, VoiceChannel } from "discord.js";
 
 export const synchronize = async (discordClient: Client, openseaClient: OpenSeaClient) => {
 
-    const slugSubscriptions = await SlugSubscription.findAll({
-        where: {
-            isActive: true
-        }
+    const slugSubscriptions = await connection.getRepository(SlugSubscription).find({
+        isActive: true
     });
 
     console.log(`Found ${slugSubscriptions.length} slug subscriptions`);
@@ -39,13 +37,13 @@ export const synchronize = async (discordClient: Client, openseaClient: OpenSeaC
 
     });
 
+    const createdAt = new Date();
     for (let entry of similarSlugs.entries()) {
         const { error, slugExists, floorPriceNum } = entry[1];
         if (error || !slugExists) return;
-        const date = new Date();
-        FloorPriceHistory.create({
+        connection.getRepository(FloorPriceHistory).insert({
             slug: entry[0],
-            date,
+            createdAt,
             value: floorPriceNum
         });
     }
