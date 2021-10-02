@@ -21,7 +21,9 @@ export class Subscription {
     @Column()
     subType!: string;
 
-    @Column()
+    @Column({
+        default: new Date()
+    })
     createdAt!: Date;
 
     @Column()
@@ -30,17 +32,27 @@ export class Subscription {
     @Column()
     isActive!: boolean;
 
-    @Column({ length: 32, nullable: true })
+    @Column({
+        length: 32,
+        nullable: true
+    })
     claimerDiscordGuildId!: string;
 
-    @Column({ nullable: true })
+    @Column({
+        nullable: true
+    })
     claimedAt!: Date;
 
-    @Column({ length: 32, nullable: true })
+    @Column({
+        length: 32,
+        nullable: true
+    })
     // manual sub stuff
     modDiscordId!: string;
 
-    @Column({ nullable: true })
+    @Column({
+        nullable: true
+    })
     // appstle stuff
     productId!: string;
 
@@ -71,7 +83,9 @@ export class FloorPriceHistory {
     @Column()
     slug!: string;
 
-    @Column()
+    @Column({
+        default: new Date()
+    })
     createdAt!: Date;
 
     @Column()
@@ -87,24 +101,36 @@ export class SlugSubscription {
     @Column()
     slug!: string;
 
-    @Column({ length: 32 })
+    @Column({
+        length: 32
+    })
     discordUserId!: string;
 
-    @Column({ length: 32 })
+    @Column({
+        length: 32
+    })
     discordGuildId!: string;
 
-    @Column({ length: 32 })
+    @Column({
+        length: 32
+    })
     discordChannelId!: string;
-
-    @Column()
-    createdAt!: Date;
 
     @Column()
     isActive!: boolean;
 
-    @Column()
+    @Column({
+        nullable: true
+    })
     cancelledAt!: Date;
 
-    @Column()
+    @Column({
+        default: new Date()
+    })
+    createdAt!: Date;
+
+    @Column({
+        default: new Date()
+    })
     updatedAt!: Date;
 };
