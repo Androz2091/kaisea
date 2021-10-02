@@ -9,7 +9,7 @@ export const initialize = () => createConnection({
     username: process.env.DB_USERNAME,
     password: process.env.DB_PASSWORD,
     entities: [Subscription, AppstlePayment, FloorPriceHistory, SlugSubscription],
-    synchronize: true
+    synchronize: process.env.ENVIRONMENT === 'development',
 }).then((createdConnection) => connection = createdConnection);
 
 @Entity()
