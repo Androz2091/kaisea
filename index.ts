@@ -129,7 +129,8 @@ discordClient.on('interactionCreate', async (interaction) => {
                 isActive: true
             }).then(() => {
                 interaction.followUp('You are now watching this slug! :rocket:');
-            }).catch(() => {
+            }).catch((err) => {
+                console.error(err);
                 interaction.followUp('Something went wrong!');
             });
             break;
