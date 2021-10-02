@@ -30,7 +30,6 @@ export const synchronize = async (discordClient: Client, openseaClient: OpenSeaC
         if (error || !slugExists) return;
 
         if (!similarSlug) {
-            console.log(`Adding new slug to similarSlugs map (${slug})`);
             similarSlugs.set(slug, { error, slugExists, floorPrice, floorPriceNum });
         }
 
@@ -38,8 +37,9 @@ export const synchronize = async (discordClient: Client, openseaClient: OpenSeaC
 
     });
 
+    await Promise.all(promises);
+
     const createdAt = new Date();
-    console.log(`Saving ${Array.from(similarSlugs.values()).length} floor price history entries`);
     Array.from(similarSlugs.values()).forEach((entry) => {
         const { error, slugExists, floorPriceNum } = entry[1];
         if (error || !slugExists) return;
@@ -49,7 +49,5 @@ export const synchronize = async (discordClient: Client, openseaClient: OpenSeaC
             value: floorPriceNum
         });
     });
-
-    return await Promise.all(promises);
 
 };
