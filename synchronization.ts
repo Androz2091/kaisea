@@ -41,7 +41,7 @@ export const synchronize = async (discordClient: Client, openseaClient: OpenSeaC
 
     const createdAt = new Date();
     Array.from(similarSlugs.values()).forEach((entry) => {
-        const { error, slugExists, floorPriceNum } = entry[1];
+        const { error, slugExists, floorPriceNum } = entry;
         if (error || !slugExists) return;
         connection.getRepository(FloorPriceHistory).insert({
             slug: entry[0],
