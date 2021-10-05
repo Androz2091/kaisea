@@ -22,11 +22,14 @@ export class Subscription {
     subType!: string;
 
     @Column({
-        default: new Date()
+        default: new Date(),
+        type: 'timestamp with time zone'
     })
     createdAt!: Date;
 
-    @Column()
+    @Column({
+        type: 'timestamp with time zone'
+    })
     expiresAt!: Date;
 
     @Column()
@@ -39,7 +42,8 @@ export class Subscription {
     claimerDiscordGuildId!: string;
 
     @Column({
-        nullable: true
+        nullable: true,
+        type: 'timestamp with time zone'
     })
     claimedAt!: Date;
 
@@ -70,7 +74,9 @@ export class AppstlePayment {
     @Column()
     status!: string;
 
-    @Column()
+    @Column({
+        type: 'timestamp with time zone'
+    })
     billingDate!: Date;
 };
 
@@ -84,7 +90,8 @@ export class FloorPriceHistory {
     slug!: string;
 
     @Column({
-        default: new Date()
+        default: new Date(),
+        type: 'timestamp with time zone'
     })
     createdAt!: Date;
 
@@ -120,17 +127,20 @@ export class SlugSubscription {
     isActive!: boolean;
 
     @Column({
-        nullable: true
+        nullable: true,
+        type: 'timestamp with time zone'
     })
     cancelledAt!: Date;
 
     @Column({
-        default: new Date()
+        default: new Date(),
+        type: 'timestamp with time zone'
     })
     createdAt!: Date;
 
     @Column({
-        default: new Date()
+        default: new Date(),
+        type: 'timestamp with time zone'
     })
     updatedAt!: Date;
 };
