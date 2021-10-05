@@ -96,7 +96,7 @@ export class FloorPriceHistory {
     createdAt!: Date;
 
     @Column({
-        type: 'float'
+        type: 'double precision'
     })
     value!: number;
 }
