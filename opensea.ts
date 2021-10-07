@@ -58,21 +58,35 @@ export default class OpenSeaClient {
             };
         }
 
-    try {
-            const itemCountElement = (await page.$$('.fqMVjm'))[0];
-            const itemCountContent = await itemCountElement.evaluate((el) => el.textContent) as string;
-            const ownerCount = (await page.$$('.fqMVjm'))[1];
-            const ownerContent = await ownerCount.evaluate((el) => el.textContent) as string;
-            const floorPriceElement = (await page.$$('.fqMVjm'))[2];
-            const floorPriceContent = await floorPriceElement.evaluate((el) => el.textContent) as string;
-            const volumeTradedElement = (await page.$$('.fqMVjm'))[3];
-            const volumeTradedContent = await volumeTradedElement.evaluate((el) => el.textContent) as string;
-            const bannerImageElement = (await page.$$('.Image--image'))[0];
-            const bannerImageURL = await bannerImageElement.evaluate((el) => el.getAttribute('src')) as string;
-            const iconImageElement = (await page.$$('.Image--image'))[1];
-            const iconImageURL = await iconImageElement.evaluate((el) => el.getAttribute('src')) as string;
+        let itemCountElement;
+        let itemCountContent;
+        let ownerCount;
+        let ownerContent;
+        let floorPriceElement;
+        let floorPriceContent;
+        let volumeTradedElement;
+        let volumeTradedContent;
+        let bannerImageElement;
+        let bannerImageURL;
+        let iconImageElement;
+        let iconImageURL;
+
+        try {
+            itemCountElement = (await page.$$('.fqMVjm'))[0];
+            itemCountContent = await itemCountElement.evaluate((el) => el.textContent) as string;
+            ownerCount = (await page.$$('.fqMVjm'))[1];
+            ownerContent = await ownerCount.evaluate((el) => el.textContent) as string;
+            floorPriceElement = (await page.$$('.fqMVjm'))[2];
+            floorPriceContent = await floorPriceElement.evaluate((el) => el.textContent) as string;
+            volumeTradedElement = (await page.$$('.fqMVjm'))[3];
+            volumeTradedContent = await volumeTradedElement.evaluate((el) => el.textContent) as string;
+            bannerImageElement = (await page.$$('.Image--image'))[0];
+            bannerImageURL = await bannerImageElement.evaluate((el) => el.getAttribute('src')) as string;
+            iconImageElement = (await page.$$('.Image--image'))[1];
+            iconImageURL = await iconImageElement.evaluate((el) => el.getAttribute('src')) as string;
         } catch (e) {
             console.error('Something went wrong when evaluating');
+            page.close();
             return { error: 'Something went wrong when evaluating' };
         }
 
