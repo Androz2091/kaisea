@@ -58,18 +58,23 @@ export default class OpenSeaClient {
             };
         }
 
-        const itemCountElement = (await page.$$('.fqMVjm'))[0];
-        const itemCountContent = await itemCountElement.evaluate((el) => el.textContent) as string;
-        const ownerCount = (await page.$$('.fqMVjm'))[1];
-        const ownerContent = await ownerCount.evaluate((el) => el.textContent) as string;
-        const floorPriceElement = (await page.$$('.fqMVjm'))[2];
-        const floorPriceContent = await floorPriceElement.evaluate((el) => el.textContent) as string;
-        const volumeTradedElement = (await page.$$('.fqMVjm'))[3];
-        const volumeTradedContent = await volumeTradedElement.evaluate((el) => el.textContent) as string;
-        const bannerImageElement = (await page.$$('.Image--image'))[0];
-        const bannerImageURL = await bannerImageElement.evaluate((el) => el.getAttribute('src')) as string;
-        const iconImageElement = (await page.$$('.Image--image'))[1];
-        const iconImageURL = await iconImageElement.evaluate((el) => el.getAttribute('src')) as string;
+    try {
+            const itemCountElement = (await page.$$('.fqMVjm'))[0];
+            const itemCountContent = await itemCountElement.evaluate((el) => el.textContent) as string;
+            const ownerCount = (await page.$$('.fqMVjm'))[1];
+            const ownerContent = await ownerCount.evaluate((el) => el.textContent) as string;
+            const floorPriceElement = (await page.$$('.fqMVjm'))[2];
+            const floorPriceContent = await floorPriceElement.evaluate((el) => el.textContent) as string;
+            const volumeTradedElement = (await page.$$('.fqMVjm'))[3];
+            const volumeTradedContent = await volumeTradedElement.evaluate((el) => el.textContent) as string;
+            const bannerImageElement = (await page.$$('.Image--image'))[0];
+            const bannerImageURL = await bannerImageElement.evaluate((el) => el.getAttribute('src')) as string;
+            const iconImageElement = (await page.$$('.Image--image'))[1];
+            const iconImageURL = await iconImageElement.evaluate((el) => el.getAttribute('src')) as string;
+        } catch (e) {
+            console.error('Something went wrong when evaluating');
+            return { error: 'Something went wrong when evaluating' };
+        }
 
         if (
             !parseContent(itemCountContent)
