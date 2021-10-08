@@ -1,3 +1,4 @@
+import fetch from 'node-fetch';
 import type { Browser } from 'puppeteer';
 import puppeteer from 'puppeteer-extra';
 
@@ -111,6 +112,22 @@ export default class OpenSeaClient {
             iconImageURL,
             bannerImageURL
         }
+    }
+
+    async getCollectionEvents (slug: string, eventType: 'created' | 'successful', occurredAfter?: number): Promise<{
+        slugExists: boolean;
+        events: unknown[];
+    }> {
+        const query = new URLSearchParams();
+        query.set('collection_slug', slug);
+        query.set('event_type', eventType);
+        if (occurredAfter) query.set('occurred_after', occurredAfter.toString());
+        query.set('only_opensea', 'false');
+        const response = await (await fetch(`https://api.opensea.io/api/v1/events${query}`)).json();
+        return {
+            slugExists: response.success,
+            events: response.assets_events
+        };
     }
 
     formatSlugName (slug: string): string {

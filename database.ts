@@ -8,7 +8,7 @@ export const initialize = () => createConnection({
     database: process.env.DB_NAME,
     username: process.env.DB_USERNAME,
     password: process.env.DB_PASSWORD,
-    entities: [Subscription, AppstlePayment, FloorPriceHistory, SlugSubscription],
+    entities: [Subscription, AppstlePayment, FloorPriceHistory, SlugSubscription, NotificationSubscription, GuildSettings],
     synchronize: process.env.ENVIRONMENT === 'development',
 }).then((createdConnection) => connection = createdConnection);
 
@@ -178,6 +178,14 @@ export class NotificationSubscription {
 
     @Column()
     type!: string;
+
+    @Column()
+    slug!: string;
+
+    @Column({
+        length: 32
+    })
+    discordUserId!: string;
     
     @Column({
         length: 32
@@ -188,5 +196,18 @@ export class NotificationSubscription {
         length: 32
     })
     discordChannelId!: string;
+
+    @Column()
+    isActive!: boolean;
+
+    @Column({
+        nullable: true
+    })
+    lastSyncAt!: Date;
+
+    @Column({
+        type: 'time with time zone'
+    })
+    createdAt!: Date;
 
 }
