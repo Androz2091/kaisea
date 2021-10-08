@@ -145,4 +145,48 @@ export class SlugSubscription {
         type: 'timestamp with time zone'
     })
     updatedAt!: Date;
-};
+}
+
+@Entity() 
+export class GuildSettings {
+
+    @PrimaryGeneratedColumn()
+    id!: number;
+
+    @PrimaryColumn({
+        unique: true
+    })
+    guildId!: string;
+
+    @Column({
+        nullable: true
+    })
+    defaultWatchCategory!: string;
+
+    @Column({
+        default: 'admin'
+    })
+    watchPermissions!: string;
+
+}
+
+@Entity()
+export class NotificationSubscription {
+
+    @PrimaryGeneratedColumn()
+    id!: number;
+
+    @Column()
+    type!: string;
+    
+    @Column({
+        length: 32
+    })
+    discordGuildId!: string;
+
+    @Column({
+        length: 32
+    })
+    discordChannelId!: string;
+
+}
