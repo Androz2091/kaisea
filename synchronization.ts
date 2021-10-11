@@ -22,7 +22,7 @@ export const synchronizeEvents = async (discordClient: Client, openseaClient: Op
 
         console.log(`Channel found for notif subscription #${notificationSubscription.id}`);
 
-        const { events } = await openseaClient.getCollectionEvents(slug, type as any, lastSync);
+        const { events } = await openseaClient.getCollectionEvents(slug, type, lastSync);
 
         const sendPromises: Promise<void>[] = [];
         events.forEach((event) => {

@@ -35,7 +35,8 @@ const commands = [{
                 {
                     name: 'channel',
                     description: 'The channel in which the listing notifications will be sent',
-                    type: ApplicationCommandOptionType.String,
+                    type: ApplicationCommandOptionType.Channel,
+                    channel_types: [ChannelType.GuildText],
                     required: true
                 }
             ]
@@ -54,7 +55,8 @@ const commands = [{
                 {
                     name: 'channel',
                     description: 'The channel in which the sales notifications will be sent',
-                    type: ApplicationCommandOptionType.String,
+                    type: ApplicationCommandOptionType.Channel,
+                    channel_types: [ChannelType.GuildText],
                     required: true
                 }
             ]
@@ -143,7 +145,7 @@ const commands = [{
                     name: 'channel',
                     description: 'The default category',
                     type: ApplicationCommandOptionType.Channel,
-                    channel_types: [],
+                    channel_types: [ChannelType.GuildText],
                     required: true
                 }
             ]
@@ -178,18 +180,17 @@ const rest = new REST({ version: '9' }).setToken(process.env.DISCORD_TOKEN);
     try {
         console.log('Started refreshing application (/) commands.');
 
-        /*
+        await rest.put(
+            Routes.applicationGuildCommands(process.env.DISCORD_CLIENT_ID, '890617349068165180'),
+            { body: commands }
+        ).then(console.log);
+        
+/*
         await rest.put(
             Routes.applicationCommands(process.env.DISCORD_CLIENT_ID),
             { body: commands }
         ).then(console.log);
-        */
-
-        await rest.put(
-            Routes.applicationCommands(process.env.DISCORD_CLIENT_ID),
-            { body: commands }
-        ).then(console.log);
-
+*/
         console.log('Successfully reloaded application (/) commands.');
     } catch (error) {
         console.error(error);

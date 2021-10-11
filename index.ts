@@ -208,7 +208,7 @@ discordClient.on('interactionCreate', async (interaction) => {
     
                 interaction.deferReply();
     
-                const { slugExists } = await openSeaClient.getCollectionEvents(slug, 'successful');
+                const { slugExists } = await openSeaClient.getCollectionEvents(slug, 'successfull');
     
                 if (!slugExists) {
                     interaction.followUp('This slug does not exist!');
