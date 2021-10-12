@@ -1,6 +1,7 @@
 import { connection, FloorPriceHistory, NotificationSubscription, SlugSubscription } from "./database";
 import type OpenSeaClient from "./opensea";
 import { Client, MessageEmbed, TextChannel, VoiceChannel } from "discord.js";
+import { ethers } from 'ethers';
 
 export const synchronizeEvents = async (discordClient: Client, openseaClient: OpenSeaClient) => {
 
@@ -13,7 +14,7 @@ export const synchronizeEvents = async (discordClient: Client, openseaClient: Op
     const promises = notificationSubscriptions.map(async (notificationSubscription) => {
         
         const slug = notificationSubscription.slug;
-        const type = notificationSubscription.type as 'created' | 'successfull';
+        const type = notificationSubscription.type as 'created' | 'successful';
         const lastSync = new Date(notificationSubscription.lastSyncAt).getTime();
         const channelId = notificationSubscription.discordChannelId;
         const channel = discordClient.channels.cache.get(channelId) as TextChannel;
@@ -22,32 +23,42 @@ export const synchronizeEvents = async (discordClient: Client, openseaClient: Op
 
         console.log(`Channel found for notif subscription #${notificationSubscription.id}`);
 
-        const { events } = await openseaClient.getCollectionEvents(slug, type, lastSync);
+        const { events } = await openseaClient.getCollectionEvents(slug, type, undefined);
+
+        console.log(events[0])
 
         const sendPromises: Promise<void>[] = [];
-        events.forEach((event) => {
+        (!lastSync ? events : [events[0]]).forEach((event) => {
             let eventData = event as any;
+            const url = `https://opensea.io/assets/${eventData.asset.asset_contract.address}/${eventData.asset.token_id}`;
             if (type === 'created') {
-                const url = `https://opensea.io/assets/${eventData.asset.asset_contract.address}/${eventData.asset.token_id}`;
                 const embed = new MessageEmbed()
                     .setTitle(`${eventData.asset.name} has been listed !`)
                     .setURL(url)
                     .setThumbnail(eventData.asset.collection.banner_image_url)
+                    .setImage(eventData.asset.image_url)
                     .addField('Name', eventData.asset.name)
-                    //.addField('Price', eventData.asset.)
+                    .addField('Amount', `${ethers.utils.formatEther(eventData.starting_price ? eventData.starting_price.toFixed(2) : '0')}${ethers.constants.EtherSymbol}`)
                     .setFooter('Listed on OpenSea', discordClient.user?.displayAvatarURL())
+                    .setTimestamp(new Date(eventData.created_date))
                     .setColor('DARK_AQUA');
                 sendPromises.push(new Promise((resolve) => {
                     channel.send({
                         embeds: [embed]
                     }).finally(() => resolve());
                 }));
-            } else if (type === 'successfull') {
+            } else if (type === 'successful') {
                 const embed = new MessageEmbed()
                     .setTitle(`${eventData.asset.name} has been sold !`)
+                    .setURL(url)
                     .setThumbnail(eventData.asset.collection.banner_image_url)
+                    .setImage(eventData.asset.image_url)
                     .addField('Name', eventData.asset.name)
+                    .addField('Amount', `${ethers.utils.formatEther(eventData.total_price || '0')}${ethers.constants.EtherSymbol}`)
+                    .addField('Buyer', eventData?.winner_account?.address)
+                    .addField('Seller', eventData?.seller?.address)
                     .setFooter('Sold on OpenSea', discordClient.user?.displayAvatarURL())
+                    .setTimestamp(new Date(eventData.created_date))
                     .setColor('DARK_AQUA');
                 sendPromises.push(new Promise((resolve) => {
                     channel.send({

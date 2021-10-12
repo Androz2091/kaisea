@@ -114,7 +114,7 @@ export default class OpenSeaClient {
         }
     }
 
-    async getCollectionEvents (slug: string, eventType: 'created' | 'successfull', occurredAfter?: number): Promise<{
+    async getCollectionEvents (slug: string, eventType: 'created' | 'successful', occurredAfter?: number): Promise<{
         slugExists: boolean;
         events: unknown[];
     }> {
@@ -122,13 +122,12 @@ export default class OpenSeaClient {
         query.set('collection_slug', slug);
         query.set('event_type', eventType);
         if (occurredAfter) query.set('occurred_after', occurredAfter.toString());
-        console.log(query);
         query.set('only_opensea', 'false');
-        const response = await (await fetch(`https://api.opensea.io/api/v1/events${query}`)).json();
+        const response = await (await fetch(`https://api.opensea.io/api/v1/events?${query}`)).json();
         console.log(response);
         return {
-            slugExists: response.success,
-            events: response.assets_events
+            slugExists: Object.prototype.hasOwnProperty.call(response, 'asset_events'),
+            events: response.asset_events
         };
     }
 

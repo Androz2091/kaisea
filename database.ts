@@ -206,7 +206,7 @@ export class NotificationSubscription {
     lastSyncAt!: Date;
 
     @Column({
-        type: 'time with time zone'
+        type: 'timestamp with time zone'
     })
     createdAt!: Date;
 

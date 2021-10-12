@@ -187,7 +187,7 @@ discordClient.on('interactionCreate', async (interaction) => {
                 });
             } else if (subCommand === 'sales') {
                 const salesSubscriptions = await connection.getRepository(NotificationSubscription).find({
-                    type: 'successfull',
+                    type: 'successful',
                     discordGuildId: interaction.guildId!,
                     isActive: true
                 });
@@ -208,7 +208,7 @@ discordClient.on('interactionCreate', async (interaction) => {
     
                 interaction.deferReply();
     
-                const { slugExists } = await openSeaClient.getCollectionEvents(slug, 'successfull');
+                const { slugExists } = await openSeaClient.getCollectionEvents(slug, 'successful');
     
                 if (!slugExists) {
                     interaction.followUp('This slug does not exist!');
@@ -217,7 +217,7 @@ discordClient.on('interactionCreate', async (interaction) => {
     
                 await connection.getRepository(NotificationSubscription).insert({
                     slug,
-                    type: 'successfull',
+                    type: 'successful',
                     discordUserId: interaction.user.id,
                     discordGuildId: interaction.guildId!,
                     discordChannelId: channel.id,
@@ -293,7 +293,7 @@ discordClient.on('interactionCreate', async (interaction) => {
                 });
             }  else if (subCommand === 'sales') {
                 const salesSubscriptions = await connection.getRepository(NotificationSubscription).find({
-                    type: 'successfull',
+                    type: 'successful',
                     discordGuildId: interaction.guildId!,
                     isActive: true
                 });
@@ -307,7 +307,7 @@ discordClient.on('interactionCreate', async (interaction) => {
     
                 await connection.getRepository(NotificationSubscription).update({
                     slug,
-                    type: 'successfull',
+                    type: 'successful',
                     discordGuildId: interaction.guildId!
                 }, {
                     isActive: false
