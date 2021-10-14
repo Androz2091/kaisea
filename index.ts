@@ -2,11 +2,12 @@ import 'reflect-metadata';
 import { config } from 'dotenv';
 config();
 
-import { Client, Intents, MessageEmbed } from 'discord.js';
-import { connection, FloorPriceHistory, GuildSettings, initialize, NotificationSubscription, SlugSubscription, Subscription } from './database';
+import { Client, Intents, MessageAttachment, MessageEmbed } from 'discord.js';
+import { connection, GuildSettings, initialize, NotificationSubscription, SlugSubscription, Subscription } from './database';
 import OpenSeaClient from './opensea';
 import { synchronizeFloorPrice, synchronizeEvents } from './synchronization';
 import { LessThanOrEqual } from 'typeorm';
+import { ChartJSNodeCanvas } from 'chartjs-node-canvas';
 
 initialize();
 
@@ -444,13 +445,40 @@ discordClient.on('interactionCreate', async (interaction) => {
             
             const lastDayData = historyPerDay.at(-1);
             let difference;
+            let image;
             if (lastDayData) {
                 difference = (((slugStats.stats.floor_price - lastDayData.avg) / lastDayData.avg) * 100);
+                let chartJSNodeCanvas = new ChartJSNodeCanvas({
+                    width: 400,
+                    height: 200
+                })
+                image = await chartJSNodeCanvas.renderToBuffer({
+                    type: "line",
+                    data: {
+                        labels: historyPerDay.map((data: any) => data.to_char),
+                        datasets: [
+                            {
+                                label: "Average Floor Price",
+                                data: historyPerDay.map((data: any) => data.avg),
+                                borderColor: "rgb(61,148,192)",
+                                fill: true,
+                                backgroundColor: "rgba(61,148,192,0.1)"
+                            }
+                        ]
+                    },
+                    options: {
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
             }
 
             const embed = new MessageEmbed()
                 .setAuthor('Kaisea', discordClient.user?.displayAvatarURL())
-                .setImage(slugStats.large_image_url!)
+                .setImage(image ? 'attachment://image.png' : slugStats.large_image_url!)
                 .setDescription(`📈 Statistics for collection [${slug}](https://opensea.io/collection/${slug})`)
                 .addField('Floor Price', `${slugStats.stats.floor_price} Ξ`)
 
@@ -463,7 +491,7 @@ discordClient.on('interactionCreate', async (interaction) => {
                 .addField('Item Count', `${slugStats.stats.total_supply}`)
                 .setColor('#0E4749');
             
-            interaction.followUp({ embeds: [embed] });
+            interaction.followUp({ embeds: [embed], files: image ? [new MessageAttachment(image, "image.png")] : undefined });
             break;
         }
 
