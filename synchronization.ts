@@ -103,17 +103,22 @@ export const synchronizeFloorPrice = async (discordClient: Client, openseaClient
         console.log(`Channel found for subscription #${slugSubscription.id}`);
 
         const similarSlug = similarSlugs.get(slug);
-        const { error, slugExists, floorPrice, floorPriceNum } = similarSlug || await openseaClient.getSlugStats(slug);
+        const slugStats = similarSlug || await openseaClient.getSlugStats(slug);
 
-        console.log(`Slug exists: ${slugExists}; Floor Price num: ${floorPrice}`);
+        if (!slugStats) return;
 
-        if (error || !slugExists) return;
+        const slugName = slugStats.name;
+        const floorPrice = slugStats.stats.floor_price;
+        console.log(`Slug: ${slugName} Floor Price num: ${floorPrice}`);
 
         if (!similarSlug) {
-            similarSlugs.set(slug, { error, slugExists, floorPrice, floorPriceNum });
+            similarSlugs.set(slug, {
+                ...slugStats,
+                slug
+            });
         }
 
-        await channel.setName(`${floorPrice} Ξ | ${openseaClient.formatSlugName(slug)}`);
+        await channel.setName(`${floorPrice} Ξ | ${slugName}`);
 
     });
 
@@ -121,12 +126,11 @@ export const synchronizeFloorPrice = async (discordClient: Client, openseaClient
 
     const createdAt = new Date();
     Array.from(similarSlugs.values()).forEach((entry) => {
-        const { error, slugExists, floorPriceNum } = entry;
-        if (error || !slugExists) return;
+        if (!entry) return;
         connection.getRepository(FloorPriceHistory).insert({
-            slug: entry,
+            slug: entry.slug,
             createdAt,
-            value: floorPriceNum
+            value: entry.collection.stats.floor_price
         });
     });
 

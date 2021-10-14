@@ -100,19 +100,15 @@ discordClient.on('interactionCreate', async (interaction) => {
     
                 interaction.deferReply();
     
-                const { slugExists, floorPrice, error } = await openSeaClient.getSlugStats(slug);
+                const slugStats = await openSeaClient.getSlugStats(slug);
     
-                if (error) {
-                    interaction.followUp(error);
-                    return;
-                }
-    
-                if (!slugExists) {
+                if (!slugStats) {
                     interaction.followUp('This slug does not exist or does not have a floor price!');
                     return;
                 }
     
-                const slugName = openSeaClient.formatSlugName(slug);
+                const slugName = slugStats.name;
+                const floorPrice = slugStats.stats.floor_price;
                 const channel = await interaction.guild.channels.create(`${floorPrice} Ξ | ${slugName}`, {
                     type: 'GUILD_VOICE',
                     permissionOverwrites: [
@@ -389,26 +385,21 @@ discordClient.on('interactionCreate', async (interaction) => {
 
             interaction.deferReply();
 
-            const { error, slugExists, floorPrice, volumeTraded, ownerCount, itemCount, iconImageURL, bannerImageURL } = await openSeaClient.getSlugStats(slug);
+            const slugStats = await openSeaClient.getSlugStats(slug);
 
-            if (error) {
-                interaction.followUp(error);
-                return;
-            }
-
-            if (!slugExists) {
+            if (!slugStats) {
                 interaction.followUp('This slug does not exist or does not have a floor price!');
                 return;
             }
 
             const embed = new MessageEmbed()
-                .setAuthor('Kaisea', iconImageURL)
-                .setImage(bannerImageURL!)
+                .setAuthor('Kaisea', slugStats.featured_image_url)
+                .setImage(slugStats.large_image_url!)
                 .setDescription(`📈 Statistics for collection [${slug}](https://opensea.io/collection/${slug})`)
-                .addField('Floor Price', `${floorPrice} Ξ`, true)
-                .addField('Volume Traded', `${volumeTraded} Ξ`, true)
-                .addField('Owner Count', `${ownerCount}`, true)
-                .addField('Item Count', `${itemCount}`, true)
+                .addField('Floor Price', `${slugStats.stats.floor_price} Ξ`, true)
+                .addField('Volume Traded', `${slugStats.stats.total_volume} Ξ`, true)
+                .addField('Owner Count', `${slugStats.stats.num_owners}`, true)
+                .addField('Item Count', `${slugStats.stats.total_supply}`, true)
                 .setColor('#0E4749');
             
             interaction.followUp({ embeds: [embed] });
