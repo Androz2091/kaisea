@@ -3,7 +3,7 @@ import { config } from 'dotenv';
 config();
 
 import { Client, Intents, MessageEmbed } from 'discord.js';
-import { connection, initialize, NotificationSubscription, SlugSubscription, Subscription } from './database';
+import { connection, GuildSettings, initialize, NotificationSubscription, SlugSubscription, Subscription } from './database';
 import OpenSeaClient from './opensea';
 import { synchronizeFloorPrice, synchronizeEvents } from './synchronization';
 import { LessThanOrEqual } from 'typeorm';
@@ -63,14 +63,17 @@ discordClient.on('interactionCreate', async (interaction) => {
     const member = interaction.guild.members.cache.get(interaction.user.id)
     ?? await interaction.guild.members.fetch(interaction.user.id);
 
-    if (!member.permissions.has('ADMINISTRATOR')) {
-        interaction.reply('You must be an administrator to use this command!');
-        return; 
-    }
-
     switch (interaction.commandName) {
 
         case 'watch': {
+            const settings = await connection.getRepository(GuildSettings).findOne({
+                guildId: interaction.guildId!
+            });
+
+            if (settings?.watchPermissions == 'admin' && !member.permissions.has('ADMINISTRATOR')) {
+                interaction.reply('You must be an administrator to use this command!');
+                return; 
+            }
 
             const subCommand = interaction.options.getSubcommand(true);
 
@@ -111,6 +114,7 @@ discordClient.on('interactionCreate', async (interaction) => {
                 const floorPrice = slugStats.stats.floor_price;
                 const channel = await interaction.guild.channels.create(`${floorPrice} Ξ | ${slugName}`, {
                     type: 'GUILD_VOICE',
+                    parent: settings?.defaultWatchCategory,
                     permissionOverwrites: [
                         {
                             id: interaction.guild.id,
@@ -230,6 +234,15 @@ discordClient.on('interactionCreate', async (interaction) => {
         }
 
         case 'unwatch': {
+
+            const settings = await connection.getRepository(GuildSettings).findOne({
+                guildId: interaction.guildId!
+            });
+
+            if (settings?.watchPermissions == 'admin' && !member.permissions.has('ADMINISTRATOR')) {
+                interaction.reply('You must be an administrator to use this command!');
+                return; 
+            }
 
             const subCommand = interaction.options.getSubcommand(true);
 
@@ -368,6 +381,36 @@ discordClient.on('interactionCreate', async (interaction) => {
             subscription.claimerDiscordGuildId = interaction.guildId!;
             await connection.manager.save(subscription);
             interaction.reply('You have successfully claimed this license!');
+            break;
+        }
+
+        case 'config': {
+            const settings = await connection.getRepository(GuildSettings).findOne({
+                guildId: interaction.guildId!
+            });
+            if (!settings) {
+                await connection.getRepository(GuildSettings).insert({
+                    guildId: interaction.guildId!
+                });
+            }
+            const subCommand = interaction.options.getSubcommand(true);
+            if (subCommand === 'watch_permissions') {
+                const newSetting = interaction.options.getString('type')!;
+                await connection.getRepository(GuildSettings).update({
+                    guildId: interaction.guildId!
+                }, {
+                    watchPermissions: newSetting
+                });
+                interaction.reply(`You have set the watch permissions to ${newSetting}!`);
+            } else if (subCommand === 'default_watch_category') {
+                const newSetting = interaction.options.getChannel('category')!;
+                await connection.getRepository(GuildSettings).update({
+                    guildId: interaction.guildId!
+                }, {
+                    defaultWatchCategory: newSetting.id
+                });
+                interaction.reply(`You have set the default watch category to ${newSetting}!`);
+            }
             break;
         }
 

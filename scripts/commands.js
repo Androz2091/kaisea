@@ -142,10 +142,10 @@ const commands = [{
             type: ApplicationCommandOptionType.Subcommand,
             options: [
                 {
-                    name: 'channel',
+                    name: 'category',
                     description: 'The default category',
                     type: ApplicationCommandOptionType.Channel,
-                    channel_types: [ChannelType.GuildText],
+                    channel_types: [ChannelType.GuildCategory],
                     required: true
                 }
             ]
@@ -159,7 +159,6 @@ const commands = [{
                     name: 'type',
                     description: 'The new permissions',
                     type: ApplicationCommandOptionType.String,
-                    channel_types: [ChannelType.GuildCategory],
                     choices: [{
                         name: 'admin',
                         value: 'admin'
