@@ -393,11 +393,11 @@ discordClient.on('interactionCreate', async (interaction) => {
             }
 
             const embed = new MessageEmbed()
-                .setAuthor('Kaisea', slugStats.featured_image_url)
+                .setAuthor('Kaisea', discordClient.user?.displayAvatarURL())
                 .setImage(slugStats.large_image_url!)
                 .setDescription(`📈 Statistics for collection [${slug}](https://opensea.io/collection/${slug})`)
                 .addField('Floor Price', `${slugStats.stats.floor_price} Ξ`, true)
-                .addField('Volume Traded', `${slugStats.stats.total_volume} Ξ`, true)
+                .addField('Volume Traded', `${parseInt(slugStats.stats.total_volume)} Ξ`, true)
                 .addField('Owner Count', `${slugStats.stats.num_owners}`, true)
                 .addField('Item Count', `${slugStats.stats.total_supply}`, true)
                 .setColor('#0E4749');
