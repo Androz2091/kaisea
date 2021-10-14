@@ -130,7 +130,7 @@ export const synchronizeFloorPrice = async (discordClient: Client, openseaClient
         connection.getRepository(FloorPriceHistory).insert({
             slug: entry.slug,
             createdAt,
-            value: entry.collection.stats.floor_price
+            value: entry.stats.floor_price
         });
     });
 

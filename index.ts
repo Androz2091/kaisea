@@ -3,7 +3,7 @@ import { config } from 'dotenv';
 config();
 
 import { Client, Intents, MessageEmbed } from 'discord.js';
-import { connection, GuildSettings, initialize, NotificationSubscription, SlugSubscription, Subscription } from './database';
+import { connection, FloorPriceHistory, GuildSettings, initialize, NotificationSubscription, SlugSubscription, Subscription } from './database';
 import OpenSeaClient from './opensea';
 import { synchronizeFloorPrice, synchronizeEvents } from './synchronization';
 import { LessThanOrEqual } from 'typeorm';
@@ -435,14 +435,32 @@ discordClient.on('interactionCreate', async (interaction) => {
                 return;
             }
 
+            const historyPerDay = await connection.manager.query(`
+                SELECT to_char("createdAt"::date, 'DD/MM'), AVG(value) FROM floor_price_history
+                WHERE "createdAt"::date > NOW() - interval '7 days'
+                AND slug = '${slug}'
+                GROUP by 1
+            `);
+            
+            const lastDayData = historyPerDay.at(-1);
+            let difference;
+            if (lastDayData) {
+                difference = (((slugStats.stats.floor_price - lastDayData.avg) / lastDayData.avg) * 100);
+            }
+
             const embed = new MessageEmbed()
                 .setAuthor('Kaisea', discordClient.user?.displayAvatarURL())
                 .setImage(slugStats.large_image_url!)
                 .setDescription(`📈 Statistics for collection [${slug}](https://opensea.io/collection/${slug})`)
-                .addField('Floor Price', `${slugStats.stats.floor_price} Ξ`, true)
-                .addField('Volume Traded', `${parseInt(slugStats.stats.total_volume)} Ξ`, true)
-                .addField('Owner Count', `${slugStats.stats.num_owners}`, true)
-                .addField('Item Count', `${slugStats.stats.total_supply}`, true)
+                .addField('Floor Price', `${slugStats.stats.floor_price} Ξ`)
+
+            if (difference) {
+                embed.addField('Difference (24hrs)', `${difference ? (`${difference > 0 ? `+${difference.toFixed(2)}% 🔼` : `-${difference.toFixed(2)}% 🔽`}`) : ''}`);
+            }
+
+            embed.addField('Volume Traded', `${parseInt(slugStats.stats.total_volume)} Ξ`)
+                .addField('Owner Count', `${slugStats.stats.num_owners}`)
+                .addField('Item Count', `${slugStats.stats.total_supply}`)
                 .setColor('#0E4749');
             
             interaction.followUp({ embeds: [embed] });
