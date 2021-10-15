@@ -1,5 +1,10 @@
 import fetch from 'node-fetch';
 import { pRateLimit } from 'p-ratelimit';
+import type { Browser } from 'puppeteer';
+import puppeteer from 'puppeteer-extra';
+import PluginStealth from 'puppeteer-extra-plugin-stealth';
+
+puppeteer.use(PluginStealth());
 
 const limit = pRateLimit({
     interval: 200, 
@@ -10,7 +15,26 @@ const limit = pRateLimit({
 
 export default class OpenSeaClient {
 
+
+    public _browser: null|Browser;
+
     constructor () {
+        this._browser = null;
+        puppeteer.launch({
+            headless: true
+        }).then((browser) => {
+            console.log('Chrome launched!');
+            this._browser = browser;
+        });
+
+        setInterval(async () => {
+            const pages = await this._browser?.pages() || [];
+            for (let page of pages) {
+                const closed = await page.isClosed();
+                await page.close();
+                if (!closed) console.log(`Closed page!`);
+            }
+        }, 50*60_000);
     }
 
     getSlugStats (slug: string): Promise<any> {
@@ -36,6 +60,15 @@ export default class OpenSeaClient {
             slugExists: Object.prototype.hasOwnProperty.call(response, 'asset_events'),
             events: response.asset_events
         };
+    }
+
+    async getBuynowItems (slug: string): Promise<number> {
+        const page = await this._browser!.newPage();
+        await page.goto(`https://opensea.io/collection/${slug}?search[sortAscending]=true&search[sortBy]=PRICE&search[toggles][0]=BUY_NOW`);
+        await page.waitForTimeout(5);
+        const itemCountElement = (await page.$$('.AssetSearchView--results-count'))[0];
+        const itemCountContent = await itemCountElement.evaluate((el) => el.textContent) as string;
+        return parseInt(itemCountContent.replace(/[^0-9.]/g, ''));
     }
 
     formatSlugName (slug: string): string {

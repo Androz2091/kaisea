@@ -436,6 +436,8 @@ discordClient.on('interactionCreate', async (interaction) => {
                 return;
             }
 
+            const buynowCount = await openSeaClient.getBuynowItems(slug).catch((e) => console.error(e));
+
             const historyPerDay = await connection.manager.query(`
                 SELECT to_char("createdAt"::date, 'DD/MM'), AVG(value) FROM floor_price_history
                 WHERE "createdAt"::date > NOW() - interval '7 days'
@@ -480,15 +482,22 @@ discordClient.on('interactionCreate', async (interaction) => {
                 .setAuthor('Kaisea', discordClient.user?.displayAvatarURL())
                 .setImage(image ? 'attachment://image.png' : slugStats.large_image_url!)
                 .setDescription(`📈 Statistics for collection [${slug}](https://opensea.io/collection/${slug})`)
-                .addField('Floor Price', `${slugStats.stats.floor_price} Ξ`)
+                .addField('Floor Price', `${(slugStats.stats.floor_price as number).toLocaleString('en-US', {
+                    maximumFractionDigits: 2
+                })} Ξ`)
 
             if (difference) {
-                embed.addField('Difference (24hrs)', `${difference ? (`${difference > 0 ? `+${difference.toFixed(2)}% 🔼` : `-${difference.toFixed(2)}% 🔽`}`) : ''}`);
+                embed.addField('Difference (24hrs)', `${difference ? (`${difference > 0 ? `+${Math.abs(difference).toFixed(2)}% 🔼` : `-${Math.abs(difference).toFixed(2)}% 🔽`}`) : ''}`);
             }
 
-            embed.addField('Volume Traded', `${parseInt(slugStats.stats.total_volume)} Ξ`)
-                .addField('Owner Count', `${slugStats.stats.num_owners}`)
-                .addField('Item Count', `${slugStats.stats.total_supply}`)
+            embed.addField('Volume Traded', `${parseInt(slugStats.stats.total_volume).toLocaleString('en-US')} Ξ`);
+
+            if (buynowCount) {
+                embed.addField('Items being sold', buynowCount.toLocaleString('en-US'));
+            }
+
+            embed.addField('Owner Count', slugStats.stats.num_owners.toLocaleString('en-US'))
+                .addField('Item Count', slugStats.stats.total_supply.toLocaleString('en-US'))
                 .setColor('#0E4749');
             
             interaction.followUp({ embeds: [embed], files: image ? [new MessageAttachment(image, "image.png")] : undefined });
