@@ -386,6 +386,10 @@ discordClient.on('interactionCreate', async (interaction) => {
         }
 
         case 'config': {
+            const member = await interaction.guild.members.fetch(interaction.user.id);
+            if (!member.permissions.has('ADMINISTRATOR')) {
+                return interaction.reply('You do not have the right permissions to change the settings.');
+            }
             const settings = await connection.getRepository(GuildSettings).findOne({
                 guildId: interaction.guildId!
             });
