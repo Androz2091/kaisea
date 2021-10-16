@@ -9,8 +9,6 @@ export const synchronizeEvents = async (discordClient: Client, openseaClient: Op
         isActive: true
     });
 
-    console.log(`Found ${notificationSubscriptions.length} notification subscriptions`);
-
     const promises = notificationSubscriptions.map(async (notificationSubscription) => {
         
         const slug = notificationSubscription.slug;
@@ -127,6 +125,11 @@ export const synchronizeFloorPrice = async (discordClient: Client, openseaClient
     const createdAt = new Date();
     Array.from(similarSlugs.values()).forEach((entry) => {
         if (!entry) return;
+        console.log({
+            slug: entry.slug,
+            createdAt,
+            value: entry.stats.floor_price
+        })
         connection.getRepository(FloorPriceHistory).insert({
             slug: entry.slug,
             createdAt,
