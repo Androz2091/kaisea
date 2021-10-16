@@ -21,12 +21,17 @@ export const synchronizeEvents = async (discordClient: Client, openseaClient: Op
 
         console.log(`Channel found for notif subscription #${notificationSubscription.id}`);
 
-        const { events } = await openseaClient.getCollectionEvents(slug, type, undefined);
+        const { events } = await openseaClient.getCollectionEvents(slug, type, lastSync);
 
-        console.log(events[0])
+        await connection.getRepository(NotificationSubscription).update({
+            isActive: true
+        }, {
+            lastSyncAt: new Date()
+        });
 
         const sendPromises: Promise<void>[] = [];
         (!lastSync ? events : [events[0]]).forEach((event) => {
+            if (!event) return;
             let eventData = event as any;
             const url = `https://opensea.io/assets/${eventData.asset.asset_contract.address}/${eventData.asset.token_id}`;
             if (type === 'created') {
@@ -68,12 +73,6 @@ export const synchronizeEvents = async (discordClient: Client, openseaClient: Op
 
         await Promise.allSettled(sendPromises);
 
-    });
-
-    await connection.getRepository(NotificationSubscription).update({
-        isActive: true
-    }, {
-        lastSyncAt: new Date()
     });
 
     await Promise.all(promises);
