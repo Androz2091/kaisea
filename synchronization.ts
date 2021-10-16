@@ -103,7 +103,9 @@ export const synchronizeFloorPrice = async (discordClient: Client, openseaClient
         const similarSlug = similarSlugs.get(slug);
         const slugStats = similarSlug || await openseaClient.getSlugStats(slug);
 
-        if (!slugStats) return;
+        if (!slugStats) {
+            console.log(`No stats found for ${slug}...`);
+        };
 
         const slugName = slugStats.name;
         const floorPrice = slugStats.stats.floor_price.toFixed(2);
