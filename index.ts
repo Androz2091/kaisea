@@ -18,6 +18,10 @@ const discordClient = new Client({
 
 discordClient.on('ready', () => {
     console.log(`Logged in as ${discordClient.user!.tag}!`);
+
+    if (process.argv.includes('--sync')) {
+        synchronizeFloorPrice(discordClient, openSeaClient);
+    }
 });
 
 setInterval(() => {
