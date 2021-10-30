@@ -55,7 +55,7 @@ export default class OpenSeaClient {
         if (occurredAfter) query.set('occurred_after', occurredAfter.toString());
         query.set('only_opensea', 'false');
         const response = await (await fetch(`https://api.opensea.io/api/v1/events?${query}`)).json();
-        console.log(response);
+        console.log(query.toString(), response);
         return {
             slugExists: Object.prototype.hasOwnProperty.call(response, 'asset_events'),
             events: response.asset_events
