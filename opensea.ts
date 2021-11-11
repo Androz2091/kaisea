@@ -1,17 +1,9 @@
 import fetch from 'node-fetch';
-import { pRateLimit } from 'p-ratelimit';
 import type { Browser } from 'puppeteer';
 import puppeteer from 'puppeteer-extra';
 import PluginStealth from 'puppeteer-extra-plugin-stealth';
 
 puppeteer.use(PluginStealth());
-
-const limit = pRateLimit({
-    interval: 200, 
-    rate: 1,
-    concurrency: 2,
-    maxDelay: 15_000
-});
 
 export default class OpenSeaClient {
 
@@ -38,11 +30,15 @@ export default class OpenSeaClient {
     }
 
     getSlugStats (slug: string): Promise<any> {
-        return limit(() => fetch(`https://api.opensea.io/collection/${slug}`).then((res) => {
+        return fetch(`https://api.opensea.io/collection/${slug}`, {
+            headers: {
+                'X-API-KEY': process.env.OPENSEA_API_KEY!
+            }
+        }).then((res) => {
             return res.json().then((data) => {
                 return data?.collection ?? 0;
             });
-        }));
+        });
     }
 
     async getCollectionEvents (slug: string, eventType: 'created' | 'successful', occurredAfter?: number): Promise<{
