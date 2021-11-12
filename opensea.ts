@@ -2,6 +2,7 @@ import fetch from 'node-fetch';
 import type { Browser } from 'puppeteer';
 import puppeteer from 'puppeteer-extra';
 import PluginStealth from 'puppeteer-extra-plugin-stealth';
+import { HttpsProxyAgent } from 'https-proxy-agent';
 
 puppeteer.use(PluginStealth());
 
@@ -31,9 +32,7 @@ export default class OpenSeaClient {
 
     getSlugStats (slug: string): Promise<any> {
         return fetch(`https://api.opensea.io/collection/${slug}`, {
-            headers: {
-                'X-API-KEY': process.env.OPENSEA_API_KEY!
-            }
+            agent: new HttpsProxyAgent(process.env.PROXY_URL!)
         }).then((res) => {
             return res.json().then((data) => {
                 return data?.collection ?? 0;
@@ -51,9 +50,7 @@ export default class OpenSeaClient {
         if (occurredAfter) query.set('occurred_after', occurredAfter.toString());
         query.set('only_opensea', 'false');
         const response = await (await fetch(`https://api.opensea.io/api/v1/events?${query}`, {
-            headers: {
-                'X-API-KEY': process.env.OPENSEA_API_KEY!
-            }
+            agent: new HttpsProxyAgent(process.env.PROXY_URL!)
         })).json();
         console.log(query.toString(), response);
         return {
