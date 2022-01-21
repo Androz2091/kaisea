@@ -357,7 +357,7 @@ discordClient.on('interactionCreate', async (interaction) => {
                 if (watchItem instanceof SlugSubscription) {
                     watchItemText = `[${watchItem.slug}](https://opensea.io/collection/${watchItem.slug}) (floor price)\n`;
                 } else if (watchItem instanceof NotificationSubscription) {
-                    watchItemText = `[${watchItem.slug}](https://opensea.io/collection/${watchItem.slug}) in <#${watchItem.discordChannelId}> (${watchItem.type === 'created' ? 'listing' : 'sales'})`
+                    watchItemText = `[${watchItem.slug}](https://opensea.io/collection/${watchItem.slug}) in <#${watchItem.discordChannelId}> (${watchItem.type === 'created' ? 'listing' : 'sales'})\n`
                 }
                 if ((description.length + watchItemText.length) > 2048) {
                     embeds.push(new MessageEmbed().setDescription(watchItemText));
