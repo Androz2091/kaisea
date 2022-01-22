@@ -47,7 +47,8 @@ export default class OpenSeaClient {
         const query = new URLSearchParams();
         query.set('collection_slug', slug);
         query.set('event_type', eventType);
-        if (occurredAfter) query.set('occurred_after', Math.round(occurredAfter / 1000).toString());
+        if (occurredAfter) query.set('occurred_after', Math.floor(occurredAfter / 1000).toString());
+        else query.set('occurred_after', Math.floor(Date.now() / 1000).toString());
         query.set('only_opensea', 'false');
         const response = await (await fetch(`https://api.opensea.io/api/v1/events?${query}`, {
             // agent: new HttpsProxyAgent(process.env.PROXY_URL!),
