@@ -8,7 +8,7 @@ import OpenSeaClient from './opensea';
 import { synchronizeFloorPrice, synchronizeEvents } from './synchronization';
 import { LessThanOrEqual } from 'typeorm';
 import { ChartJSNodeCanvas } from 'chartjs-node-canvas';
-import uuid from 'uuid';
+import uuid from 'uuidv4';
 
 initialize();
 
@@ -396,7 +396,7 @@ discordClient.on('interactionCreate', async (interaction) => {
                 interaction.reply('You are not an owner of this bot!');
                 return;
             }
-            const subId = uuid.v4();
+            const subId = uuid.uuid();
             await connection.getRepository(Subscription).insert({
                 subId,
                 subType: '',
