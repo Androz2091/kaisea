@@ -10,6 +10,8 @@ import { LessThanOrEqual } from 'typeorm';
 import { ChartJSNodeCanvas } from 'chartjs-node-canvas';
 import uuid from 'uuidv4';
 
+process.env.TZ = "GMT";
+
 initialize();
 
 const openSeaClient = new OpenSeaClient();
