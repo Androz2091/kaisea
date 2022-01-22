@@ -43,7 +43,7 @@ export const synchronizeEvents = async (discordClient: Client, openseaClient: Op
                     .setThumbnail(eventData.asset.collection.banner_image_url)
                     .setImage(eventData.asset.image_url)
                     .addField('Name', eventData.asset.name)
-                    .addField('Amount', `${ethers.utils.formatEther(eventData.starting_price ? parseInt(eventData.starting_price).toFixed(2) : '0')}${ethers.constants.EtherSymbol}`)
+                    .addField('Amount', `${parseInt(eventData.starting_price) / 1E18 || '0'} ETH`)
                     .setFooter('Listed on OpenSea', discordClient.user?.displayAvatarURL())
                     .setTimestamp(new Date(eventData.created_date))
                     .setColor('DARK_AQUA');
