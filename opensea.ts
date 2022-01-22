@@ -3,6 +3,8 @@ import type { Browser } from 'puppeteer';
 import puppeteer from 'puppeteer-extra';
 import PluginStealth from 'puppeteer-extra-plugin-stealth';
 import { HttpsProxyAgent } from 'https-proxy-agent';
+import PQueue from 'p-queue';
+const queue = new PQueue({ concurrency: 1 });
 
 puppeteer.use(PluginStealth());
 
@@ -50,12 +52,12 @@ export default class OpenSeaClient {
         if (occurredAfter) query.set('occurred_after', Math.floor(occurredAfter / 1000).toString());
         else query.set('occurred_after', Math.floor(Date.now() / 1000).toString());
         query.set('only_opensea', 'false');
-        const response = await (await fetch(`https://api.opensea.io/api/v1/events?${query}`, {
+        const response = await queue.add(async () => await (await fetch(`https://api.opensea.io/api/v1/events?${query}`, {
             // agent: new HttpsProxyAgent(process.env.PROXY_URL!),
             headers: {
                 'X-API-KEY': process.env.OPENSEA_API_KEY!
             }
-        })).json();
+        })).json());
         console.log(query.toString(), response);
         return {
             slugExists: Object.prototype.hasOwnProperty.call(response, 'asset_events'),
