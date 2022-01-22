@@ -44,7 +44,7 @@ export default class OpenSeaClient {
 
     async getCollectionEvents (slug: string, eventType: 'created' | 'successful', occurredAfter?: number): Promise<{
         slugExists: boolean;
-        events: unknown[];
+        events: Record<string, any>[];
     }> {
         const query = new URLSearchParams();
         query.set('collection_slug', slug);

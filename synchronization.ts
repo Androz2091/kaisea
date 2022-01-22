@@ -27,7 +27,7 @@ export const synchronizeEvents = async (discordClient: Client, openseaClient: Op
             await connection.getRepository(NotificationSubscription).update({
                 isActive: true
             }, {
-                lastSyncAt: new Date()
+                lastSyncAt: new Date(events.sort((a, b) => new Date(b.created_date).getTime() - new Date(a.created_date).getTime())[0].created_date)
             });
         }
 
