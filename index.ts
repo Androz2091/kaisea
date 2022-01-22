@@ -8,6 +8,7 @@ import OpenSeaClient from './opensea';
 import { synchronizeFloorPrice, synchronizeEvents } from './synchronization';
 import { LessThanOrEqual } from 'typeorm';
 import { ChartJSNodeCanvas } from 'chartjs-node-canvas';
+import uuid from 'uuid';
 
 initialize();
 
@@ -68,6 +69,17 @@ discordClient.on('interactionCreate', async (interaction) => {
     const member = interaction.guild.members.cache.get(interaction.user.id)
     ?? await interaction.guild.members.fetch(interaction.user.id);
 
+    const subscriptions = await connection.getRepository(Subscription).find({
+        claimerDiscordGuildId: interaction.guildId!,
+        isActive: true
+    });
+
+    const maxSubscriptionsUsed = !subscriptions.length;
+    if (maxSubscriptionsUsed && interaction.commandName !== 'license') {
+        interaction.reply('You must buy an active subscription at https://kaisea.io to be able to use the bot! :rocket:');
+        return;
+    }
+
     switch (interaction.commandName) {
 
         case 'watch': {
@@ -81,11 +93,6 @@ discordClient.on('interactionCreate', async (interaction) => {
             }
 
             const subCommand = interaction.options.getSubcommand(true);
-
-            const subscriptions = await connection.getRepository(Subscription).find({
-                claimerDiscordGuildId: interaction.guildId!,
-                isActive: true
-            });
 
             if (subCommand === 'fprice') {
                 const slugSubscriptions = await connection.getRepository(SlugSubscription).find({
@@ -196,12 +203,6 @@ discordClient.on('interactionCreate', async (interaction) => {
                     discordGuildId: interaction.guildId!,
                     isActive: true
                 });
-    
-                const maxSubscriptionsUsed = !subscriptions.length && salesSubscriptions.length > 0;
-                if (maxSubscriptionsUsed) {
-                    interaction.reply('You must buy an active subscription at https://kaisea.io to be able to add more than one sale channel! :rocket:');
-                    return;
-                }
     
                 const slug = interaction.options.getString('slug')!;
                 const channel = interaction.options.getChannel('channel')!;
@@ -389,6 +390,26 @@ discordClient.on('interactionCreate', async (interaction) => {
             break;
         }
 
+        case 'create-license': {
+            const ownerIds = process.env.OWNER_DISCORD_IDS!.split(',');
+            if (!ownerIds.includes(interaction.user.id)) {
+                interaction.reply('You are not an owner of this bot!');
+                return;
+            }
+            const subId = uuid.v4();
+            await connection.getRepository(Subscription).insert({
+                subId,
+                subType: '',
+                createdAt: new Date(),
+                expiresAt: new Date('2025-01-01'),
+                isActive: true,
+                modDiscordId: interaction.user.id
+            });
+            interaction.reply(`You have successfully created a license! ID has been sent in DMS.`);
+            interaction.user.send(`Your license ID is: ${subId}`);
+            break;
+        }
+
         case 'config': {
             const member = await interaction.guild.members.fetch(interaction.user.id);
             if (!member.permissions.has('ADMINISTRATOR')) {
@@ -424,14 +445,6 @@ discordClient.on('interactionCreate', async (interaction) => {
         }
 
         case 'stats': {
-            const subscriptions = await connection.getRepository(Subscription).find({
-                claimerDiscordGuildId: interaction.guildId!,
-                isActive: true
-            });
-            if (!subscriptions.length) {
-                interaction.reply('You must buy an active subscription at https://nfts-watcher.io to be able to use this command! :rocket:');
-                return;
-            }
 
             const slug = interaction.options.getString('slug')!;
 

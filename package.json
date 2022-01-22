@@ -22,6 +22,10 @@
     "puppeteer-extra": "^3.2.0",
     "puppeteer-extra-plugin-stealth": "^2.8.0",
     "reflect-metadata": "^0.1.13",
-    "typeorm": "^0.2.37"
+    "typeorm": "^0.2.37",
+    "uuid": "^8.3.2"
+  },
+  "devDependencies": {
+    "@types/uuid": "^8.3.4"
   }
 }

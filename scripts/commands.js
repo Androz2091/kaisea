@@ -107,6 +107,11 @@ const commands = [{
         }
     ]
 }, {
+    name: 'create-license',
+    description: 'Generate a new license that another server can claim!',
+    options: []
+},
+{
     name: 'watch-list',
     description: 'List all watched NFT slugs from OpenSea!',
     options: []
