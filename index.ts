@@ -461,8 +461,13 @@ discordClient.on('interactionCreate', async (interaction) => {
                 return;
             }
 
+            let buynowCount: string|number|void = 'Unknown';
             console.time('get listings');
-            const buynowCount = await openSeaClient.getBuynowItems(slug).catch((e) => console.error(e));
+            try {
+                buynowCount = await openSeaClient.getBuynowItems(slug);
+            } catch (e) {
+                console.error(e);
+            }
             console.timeEnd('get listings');
 
             console.time('get history');
