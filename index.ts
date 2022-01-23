@@ -8,7 +8,7 @@ import OpenSeaClient from './opensea';
 import { synchronizeFloorPrice, synchronizeEvents } from './synchronization';
 import { LessThanOrEqual } from 'typeorm';
 import { ChartJSNodeCanvas } from 'chartjs-node-canvas';
-import uuid from 'uuidv4';
+import { uuid } from 'uuidv4';
 
 process.env.TZ = "GMT";
 
@@ -386,6 +386,10 @@ discordClient.on('interactionCreate', async (interaction) => {
                 interaction.reply('This license does not exist!');
                 return;
             }
+            if (subscription.claimerDiscordGuildId) {
+                interaction.reply('This license has already been claimed!');
+                return;
+            }
             subscription.claimerDiscordGuildId = interaction.guildId!;
             await connection.manager.save(subscription);
             interaction.reply('You have successfully claimed this license!');
@@ -398,7 +402,7 @@ discordClient.on('interactionCreate', async (interaction) => {
                 interaction.reply('You are not an owner of this bot!');
                 return;
             }
-            const subId = uuid.uuid();
+            const subId = uuid();
             await connection.getRepository(Subscription).insert({
                 subId,
                 subType: '',
