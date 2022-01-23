@@ -452,15 +452,20 @@ discordClient.on('interactionCreate', async (interaction) => {
 
             interaction.deferReply();
 
+            console.time('get statistics');
             const slugStats = await openSeaClient.getSlugStats(slug);
+            console.timeEnd('get statistics');
 
             if (!slugStats) {
                 interaction.followUp('This slug does not exist or does not have a floor price!');
                 return;
             }
 
+            console.time('get listings');
             const buynowCount = await openSeaClient.getBuynowItems(slug).catch((e) => console.error(e));
+            console.timeEnd('get listings');
 
+            console.time('get history');
             const historyPerDay = await connection.manager.query(`
                 SELECT to_char("createdAt"::date, 'DD/MM'), AVG(value) FROM floor_price_history
                 WHERE "createdAt"::date > NOW() - interval '7 days'
@@ -500,6 +505,7 @@ discordClient.on('interactionCreate', async (interaction) => {
                     }
                 });
             }
+            console.timeEnd('get history');
 
             const embed = new MessageEmbed()
                 .setAuthor('Kaisea', discordClient.user?.displayAvatarURL())

@@ -33,13 +33,13 @@ export default class OpenSeaClient {
     }
 
     getSlugStats (slug: string): Promise<any> {
-        return fetch(`https://api.opensea.io/collection/${slug}`, {
+        return queue.add(() => fetch(`https://api.opensea.io/collection/${slug}`, {
             agent: new HttpsProxyAgent(process.env.PROXY_URL!)
         }).then((res) => {
             return res.json().then((data) => {
                 return data?.collection ?? 0;
             });
-        });
+        }));
     }
 
     async getCollectionEvents (slug: string, eventType: 'created' | 'successful', occurredAfter?: number): Promise<{
