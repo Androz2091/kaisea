@@ -40,7 +40,7 @@ setInterval(async () => {
     // expires old subscriptions
     await connection.getRepository(Subscription).update({
         isActive: true,
-        expiresAt: LessThanOrEqual(Date.now() + 1000 * 60 * 60 * 96)
+        expiresAt: LessThanOrEqual((Date.now() + 1000 * 60 * 60 * 96) / 1000)
     }, {
         isActive: false
     });
