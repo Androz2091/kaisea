@@ -77,7 +77,7 @@ discordClient.on('interactionCreate', async (interaction) => {
     });
 
     const maxSubscriptionsUsed = !subscriptions.length;
-    if (maxSubscriptionsUsed && interaction.commandName !== 'license') {
+    if (maxSubscriptionsUsed && interaction.commandName !== 'license' && interaction.commandName !== 'create-license') {
         interaction.reply('You must buy an active subscription at https://kaisea.io to be able to use the bot! :rocket:');
         return;
     }
