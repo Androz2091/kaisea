@@ -82,6 +82,8 @@ discordClient.on('interactionCreate', async (interaction) => {
         return;
     }
 
+    console.log(interaction.commandName);
+
     switch (interaction.commandName) {
 
         case 'watch': {
@@ -89,12 +91,16 @@ discordClient.on('interactionCreate', async (interaction) => {
                 guildId: interaction.guildId!
             });
 
+            console.log(interaction.commandName)
+
             if (settings?.watchPermissions == 'admin' && !member.permissions.has('ADMINISTRATOR')) {
                 interaction.reply('You must be an administrator to use this command!');
                 return; 
             }
 
             const subCommand = interaction.options.getSubcommand(true);
+
+            console.log(subCommand)
 
             if (subCommand === 'fprice') {
                 const slugSubscriptions = await connection.getRepository(SlugSubscription).find({
@@ -115,7 +121,7 @@ discordClient.on('interactionCreate', async (interaction) => {
                     return;
                 }
     
-                interaction.deferReply();
+                await interaction.deferReply();
     
                 const slugStats = await openSeaClient.getSlugStats(slug);
     
