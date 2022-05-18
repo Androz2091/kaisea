@@ -34,7 +34,9 @@ export default class OpenSeaClient {
 
     getSlugStats (slug: string): Promise<any> {
         return queue.add(() => fetch(`https://api.opensea.io/collection/${slug}`, {
-            agent: new HttpsProxyAgent(process.env.PROXY_URL!)
+            headers: {
+                'X-API-KEY': process.env.OPENSEA_API_KEY!
+            }
         }).then((res) => {
             return res.json().then((data) => {
                 return data?.collection ?? 0;
