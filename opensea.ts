@@ -54,7 +54,6 @@ export default class OpenSeaClient {
         if (occurredAfter) query.set('occurred_after', Math.ceil(occurredAfter / 1000).toString());
         query.set('only_opensea', 'false');
         const response = await queue.add(async () => await (await fetch(`https://api.opensea.io/api/v1/events?${query}`, {
-            // agent: new HttpsProxyAgent(process.env.PROXY_URL!),
             headers: {
                 'X-API-KEY': process.env.OPENSEA_API_KEY!
             }
