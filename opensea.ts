@@ -4,7 +4,7 @@ import puppeteer from 'puppeteer-extra';
 import PluginStealth from 'puppeteer-extra-plugin-stealth';
 import { HttpsProxyAgent } from 'https-proxy-agent';
 import PQueue from 'p-queue';
-const queue = new PQueue({ concurrency: 1 });
+const queue = new PQueue({ concurrency: 1, timeout: 5_000 });
 
 puppeteer.use(PluginStealth());
 
